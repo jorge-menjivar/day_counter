@@ -1,0 +1,57 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'counter_model.dart';
+
+
+class CounterDatabase {
+
+  Future getDb() async {
+    // Get a location using path_provider
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, 'counters');
+    return await openDatabase(path, version: 1,
+      onCreate: (Database db, int version) async {
+        // When creating the db, create the table
+        await db.execute(
+            "CREATE TABLE Counters ("
+                "${Counter.dbName} TEXT PRIMARY KEY, "
+                "${Counter.dbValue} TEXT, "
+                "${Counter.dbLast} TEXT "
+                ")");
+      });
+  }
+
+  Future <int> addToDb(Database db, String name, String value, String last) async{
+    return await db.rawInsert(
+          'INSERT INTO '
+              'Counters(${Counter.dbName}, ${Counter.dbValue}, ${Counter.dbLast})'
+              ' VALUES("$name", "$value", "$last")');
+  }
+
+  Future<int> updateCounter(Database db, String name, String value, String last) async {
+    return await db.rawUpdate('UPDATE Counters SET ${Counter.dbValue} = "$value", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
+  }
+
+  // Get map of the desired searched item
+  Future<List<Map>> getCounterQuery(Database db, String name) async{
+    var result = await db.rawQuery('SELECT * FROM Counters WHERE ${Counter.dbName} = "$name"');
+    return result;
+  }
+
+  // Delete requested counters
+  Future<int> deleteCounter(Database db, String name) async{
+    return db.rawDelete('DELETE FROM Counters WHERE ${Counter.dbName} = "$name"');
+  }
+
+  Future getQuery(Database db) async {
+    var query = await db.rawQuery('SELECT * FROM Counters ORDER BY ${Counter.dbName} ASC');
+    if (query.length == 0)print('No Counters');
+    return query;
+  }
+
+}
