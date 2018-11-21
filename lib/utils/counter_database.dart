@@ -10,6 +10,7 @@ import 'counter_model.dart';
 
 class CounterDatabase {
 
+  // Initizalize this database and return it
   Future getDb() async {
     // Get a location using path_provider
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
@@ -26,6 +27,7 @@ class CounterDatabase {
       });
   }
 
+  // Add new row to databse
   Future <int> addToDb(Database db, String name, String value, String last) async{
     return await db.rawInsert(
           'INSERT INTO '
@@ -33,6 +35,7 @@ class CounterDatabase {
               ' VALUES("$name", "$value", "$last")');
   }
 
+  // Update row in database
   Future<int> updateCounter(Database db, String name, String value, String last) async {
     return await db.rawUpdate('UPDATE Counters SET ${Counter.dbValue} = "$value", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
   }
@@ -48,6 +51,7 @@ class CounterDatabase {
     return db.rawDelete('DELETE FROM Counters WHERE ${Counter.dbName} = "$name"');
   }
 
+ // Get query of all the rows in database
   Future getQuery(Database db) async {
     var query = await db.rawQuery('SELECT * FROM Counters ORDER BY ${Counter.dbName} ASC');
     if (query.length == 0)print('No Counters');

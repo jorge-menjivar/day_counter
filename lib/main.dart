@@ -50,7 +50,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   @override
   void initState(){
     super.initState();
-    // Initiating Database
+    // Initializing Database
     _initDb();
   }
 
@@ -59,6 +59,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     super.dispose();
   }
 
+  // Initialize database
   void _initDb() async {
     counterDatabase.getDb().then((res) async{
       db = res;
@@ -67,6 +68,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     });
   }
 
+  // Transfer user to Add Counter screen
   void _addCounter() async{
     Navigator.push(context, MaterialPageRoute(builder:
       (context) => AddCounterScreen())
@@ -76,6 +78,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     });
   }
 
+  // Transfer user to Edit Counter screen
   void _editCounter(String name, String value, String last) {
     Navigator.push(context, MaterialPageRoute(builder:
       (context) => EditScreen(name: name, value: value, last: last))
@@ -85,23 +88,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     });
   }
 
-  void _deleteCounter(String name) async{
-    counterDatabase.deleteCounter(db, name).then((v) async {
-      // Updating screen
-      queryResult = await counterDatabase.getQuery(db);
-      this.setState(() => queryResult);
-
-      Fluttertoast.showToast(
-        msg: "$name deleted!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
-        timeInSecForIos: 2,
-        bgcolor: "#e74c3c",
-        textcolor: '#ffffff'
-      );
-    });
-  }
-
+  // The main method where the math to calculate if days should be added is done.
   void _incrementCounter(String name, String valueString, String lastString) async{
     DateTime _last = DateTime.parse(lastString);
     int _counter = int.parse(valueString);
@@ -111,6 +98,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     int day = DateTime.now().day;
     var _today = DateTime.parse("$year-$month-$day");
 
+    // The library DateTime automatically calculates the day difference for us.
     int newDays = _today.difference(_last).inDays;
     print(newDays);
     if (newDays <= 0){
@@ -172,22 +160,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         onPressed: _addCounter,
       ),
       body: _buildCounterTitles(),
-      /**Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have been free for',
-            ),
-            Text(
-              '$_counter days',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ), **/
     );
   }
 
@@ -223,8 +195,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         style: _valueStyle,
       ), 
       onLongPress: () {
+        // Send to Edit Screen
         _editCounter(name, value, last);
       },
+      // Try to add days to this counter
       onTap: () => _incrementCounter(name, value, last)
     );
   }

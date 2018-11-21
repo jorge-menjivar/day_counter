@@ -45,6 +45,7 @@ class EditState extends State<EditScreen> {
     super.dispose();
   }
 
+  // Initizialize Database
   void _initDb() async {
     counterDatabase.getDb()
     .then((res) async{
@@ -52,6 +53,7 @@ class EditState extends State<EditScreen> {
     });
   }
 
+  // Save the changes to database and close screen
   void _updateCounter(String name, String value) async{
     // So it does not look like 01, instead 1
     int v = int.parse(value);
@@ -79,6 +81,7 @@ class EditState extends State<EditScreen> {
     });
   }
 
+  // Delete this counter from the database and close screen
   void _deleteCounter() async{
     counterDatabase.deleteCounter(db, pName).then((v) async {
 

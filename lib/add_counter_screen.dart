@@ -43,6 +43,7 @@ class AddCounterState extends State<AddCounterScreen> {
     super.dispose();
   }
 
+  // Initizialize Database
   void _initDb() async {
     counterDatabase.getDb()
     .then((lisDb) async{
@@ -52,6 +53,7 @@ class AddCounterState extends State<AddCounterScreen> {
     });
   }
 
+  // Addind a new counter to database and closing screen
   void _createCounter(String name, String value) async{
     await counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0) {
