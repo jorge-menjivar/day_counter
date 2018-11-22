@@ -171,7 +171,7 @@ class EditState extends State<EditScreen> {
                     }
                   }
                 ),
-                new FlatButton(
+                new OutlineButton(
                   child: new Text("DELETE"),
                   onPressed: _deleteCounter,
                 )

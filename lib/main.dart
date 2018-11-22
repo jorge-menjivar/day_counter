@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'Day Counter',
       theme: new ThemeData(
         primarySwatch: Colors.green,
+        canvasColor: Colors.white,
       ),
       home: new HomeScreen(),
     );
@@ -37,15 +38,26 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   HomeScreenState();
-
   var queryResult;
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
 
-  final _biggerFont = const TextStyle(fontSize: 18.0);
-  final _valueStyle = const TextStyle(
+  final _biggerFont = const TextStyle(
     fontSize: 24.0,
-    color: Colors.green);
+    color: Colors.black54
+  );
+  final _drawerFont = const TextStyle(
+    fontSize: 18.0,
+    color: Colors.black54
+    );
+  final _valueStyle = const TextStyle(
+    fontSize: 30.0,
+    color: Colors.green,
+  );
+
+  int tileCount = 0;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   void initState(){
@@ -64,6 +76,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     counterDatabase.getDb().then((res) async{
       db = res;
       queryResult = await counterDatabase.getQuery(db);
+      tileCount = (queryResult.length * 2) + 1;
       this.setState(() => queryResult);
     });
   }
@@ -74,6 +87,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       (context) => AddCounterScreen())
     ).then((v) async {
       queryResult = await counterDatabase.getQuery(db);
+      tileCount = (queryResult.length * 2) + 1;
       this.setState(() => queryResult);
     });
   }
@@ -84,6 +98,27 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       (context) => EditScreen(name: name, value: value, last: last))
     ).then((v) async {
       queryResult = await counterDatabase.getQuery(db);
+      tileCount = (queryResult.length * 2) + 1;
+      this.setState(() => queryResult);
+    });
+  }
+
+  // Delete this counter from the database
+  void _deleteCounter(String name) async{
+    counterDatabase.deleteCounter(db, name).then((v) async {
+
+      Fluttertoast.showToast(
+        msg: "$name deleted!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIos: 2,
+        bgcolor: "#e74c3c",
+        textcolor: '#ffffff'
+      );
+
+      // Update Screen
+      queryResult = await counterDatabase.getQuery(db);
+      tileCount = (queryResult.length * 2) + 1;
       this.setState(() => queryResult);
     });
   }
@@ -136,10 +171,13 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: new AppBar(
-        title: new Text("Day Counter"),
+        automaticallyImplyLeading: false,
+        title: new Text("Day Counter", textAlign: TextAlign.center,),
         elevation: 4.0,
       ),
+      backgroundColor: Colors.white.withOpacity(.97),
       bottomNavigationBar: BottomAppBar(
         color: Colors.lightBlue,
         shape: new CircularNotchedRectangle(), 
@@ -148,8 +186,20 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            IconButton(icon: Icon(Icons.menu), onPressed: () {},),
-            IconButton(icon: Icon(Icons.forum), onPressed:() {}),
+            IconButton(
+              icon: Icon(Icons.menu),
+              color: Colors.white,
+              highlightColor: Colors.green,
+              onPressed: () {
+                _scaffoldKey.currentState.openDrawer();
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.forum),
+              color: Colors.white,
+              highlightColor: Colors.green,
+              onPressed:() {}
+              ),
           ],
         ),
       ),
@@ -159,15 +209,69 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         child: new Icon(Icons.add),
         onPressed: _addCounter,
       ),
+      drawer: new Drawer(
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            new Container(
+              child: DrawerHeader(
+                child: Text(
+                  'Day Counter',
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white
+                  ),
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green
+                ),
+              ),
+            ),
+            new Container(
+              child: new Column(
+                children: <Widget>[
+                  ListTile(
+                    leading: new Icon(
+                      Icons.settings,
+                      color: Colors.black54,
+                    ),
+                    title: Text(
+                      'Settings',
+                      textAlign: TextAlign.left,
+                      style: _drawerFont,
+                    ), 
+                    // TODO go to settings
+                    //onTap: () => Navigator.pop(context);,
+                  ),
+                  Divider(),
+                  ListTile(
+                    leading: new Icon(
+                      Icons.folder,
+                      color: Colors.black54,
+                    ),
+                    title: Text(
+                      'Terms of Use and Privacy',
+                      textAlign: TextAlign.left,
+                      style: _drawerFont,
+                    ), 
+                    // TODO go to settings
+                    //onTap: () => Navigator.pop(context);,
+                  ),
+                ]
+              ),
+            ),
+          ],
+        ),
+      ),
       body: _buildCounterTitles(),
     );
   }
 
   Widget _buildCounterTitles() {
     return ListView.builder(
-      itemCount: (queryResult.length * 2) + 1,
-      padding: const EdgeInsets.all(16.0),
-
+      itemCount: tileCount,
       // For even rows, the function adds a ListTile row for the word pairing.
       // For odd rows, the function adds a Divider widget to visually
       itemBuilder: (context, i){
@@ -183,23 +287,52 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   }
 
   Widget _buildRow(String name, String value, String last) {
-    return ListTile(
-      title: Text(
-        name,
-        textAlign: TextAlign.left,
-        style: _biggerFont,
+    // Dismiossable so we can swipe it left to delete
+    return Dismissible(
+      // Icon 'delete' and red background
+      background: Container(
+        padding: EdgeInsets.all(16.0),
+        color: Colors.redAccent,
+        child: Icon(
+          Icons.delete,
+          color: Colors.white,
+        ),
+        alignment: Alignment.centerRight,
       ),
-      trailing: new Text(
-        value,
-        textAlign: TextAlign.right,
-        style: _valueStyle,
-      ), 
-      onLongPress: () {
-        // Send to Edit Screen
-        _editCounter(name, value, last);
+      // Each Dismissible must contain a Key. Keys allow Flutter to
+      // uniquely identify Widgets.
+      key: Key(name),
+      direction: DismissDirection.endToStart,
+      // We also need to provide a function that will tell our app
+      // what to do after an item has been swiped away.
+      onDismissed: (direction) {
+        // Remove the item from our data source.
+        _deleteCounter(name);
+
+        // Show a snackbar! This snackbar could also contain "Undo" actions.
+        Scaffold
+            .of(context)
+            .showSnackBar(SnackBar(content: Text("$name deleted")));
       },
-      // Try to add days to this counter
-      onTap: () => _incrementCounter(name, value, last)
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12.0),
+        title: Text(
+          name,
+          textAlign: TextAlign.left,
+          style: _biggerFont,
+        ),
+        trailing: new Text(
+          value,
+          textAlign: TextAlign.right,
+          style: _valueStyle,
+        ), 
+        onLongPress: () {
+          // Send to Edit Screen
+          _editCounter(name, value, last);
+        },
+        // Try to add days to this counter
+        onTap: () => _incrementCounter(name, value, last)
+      ),
     );
   }
 }
