@@ -1,12 +1,12 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-7:12
-INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-7:12
-INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-7:12
-INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-7:12
-INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-7:12
-INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-7:12
-INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-7:12
+ADDED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-6:12
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-6:12
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-6:12
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-6:12
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-6:12
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-6:12
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:1:1-6:12
 	package
 		ADDED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:2:3-33
 		INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml
@@ -22,12 +22,10 @@ INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.or
 		INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml
 		INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml
 uses-sdk
-ADDED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:6:3-72
-INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:6:3-72
-INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:6:3-72
-	android:targetSdkVersion
-		ADDED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:6:40-69
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml
+INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml
 	android:minSdkVersion
-		ADDED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml:6:13-39
 		INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml
+		ADDED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml
 		INJECTED from /Users/jorge/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/src/main/AndroidManifest.xml

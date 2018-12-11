@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.daycounter"
+    package="com.prospectusoft.daycounter"
     android:versionCode="1"
     android:versionName="1.0.0" >
 
     <uses-sdk
         android:minSdkVersion="16"
-        android:targetSdkVersion="27" />
+        android:targetSdkVersion="28" />
 
     <!--
          The INTERNET permission is required for development. Specifically,
@@ -14,6 +14,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
+
     <!--
      io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -23,11 +24,14 @@
     -->
     <application
         android:name="io.flutter.app.FlutterApplication"
+        android:appComponentFactory="android.support.v4.app.CoreComponentFactory"
         android:debuggable="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="day_counter" >
+        android:label="day_counter"
+        android:supportsRtl="true"
+        android:testOnly="true" >
         <activity
-            android:name="com.example.daycounter.MainActivity"
+            android:name="com.prospectusoft.daycounter.MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density"
             android:hardwareAccelerated="true"
             android:launchMode="singleTop"
@@ -50,6 +54,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.prospectusoft.daycounter.widget.ConfigActivity" />
+
+        <receiver android:name="com.prospectusoft.daycounter.widget.widget_service" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
+
+        <activity android:name="com.prospectusoft.homescreenwidgets.HomeScreenWidgetsPlugin$ConfigHandlerActivity" >
+        </activity>
+        <activity
+            android:name="io.flutter.plugins.quickactions.QuickActionsPlugin$ShortcutHandlerActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

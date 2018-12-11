@@ -1,11 +1,16 @@
-import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'edit_screen.dart';
 import 'add_counter_screen.dart';
+import 'dart:ui';
+
+
+import 'package:home_screen_widgets/home_screen_widgets.dart';
+import 'widget_config_screen.dart';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -32,25 +37,29 @@ class MyApp extends StatelessWidget {
 
 class HomeScreen extends StatefulWidget {
   HomeScreen();
+
   @override
   createState() => HomeScreenState();
 }
 
 class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
-  HomeScreenState();
+  HomeScreenState() {
+    _widgetHandler();
+  }
+
   var queryResult;
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
 
-  final _biggerFont = const TextStyle(
+  final TextStyle _biggerFont = const TextStyle(
     fontSize: 24.0,
     color: Colors.black54
   );
-  final _drawerFont = const TextStyle(
+  final TextStyle _drawerFont = const TextStyle(
     fontSize: 18.0,
     color: Colors.black54
     );
-  final _valueStyle = const TextStyle(
+  final TextStyle _valueStyle = const TextStyle(
     fontSize: 30.0,
     color: Colors.green,
   );
@@ -59,16 +68,35 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
+  static const platform = const MethodChannel(
+    'com.prospectusoft.daycounter');
+
   @override
   void initState(){
     super.initState();
-    // Initializing Database
+    _sendReadyRequest();
     _initDb();
   }
 
     @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<Null> _sendReadyRequest() async {
+    await platform.invokeMethod('ready');
+  }
+
+  // Receiving info from widget
+  void _widgetHandler() {
+    HomeScreenWidgets homeScreenWidgets = const HomeScreenWidgets();
+    homeScreenWidgets.initialize((String method, String arguments) {
+      if (method == 'launch') {
+        print('THIS IS A LAUNCHER METHOD');
+        print(arguments);
+        Navigator.push(context, MaterialPageRoute(builder:(context) => WidgetConfigScreen()));
+      }
+    });
   }
 
   // Initialize database

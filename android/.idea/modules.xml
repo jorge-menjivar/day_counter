@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/android.iml" filepath="$PROJECT_DIR$/android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-2.1.1/android/fluttertoast.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-2.1.1/android/fluttertoast.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../home_screen_widgets/android/home_screen_widgets.iml" filepath="$PROJECT_DIR$/../../home_screen_widgets/android/home_screen_widgets.iml" />
+      <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-0.4.1/android/path_provider.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-0.4.1/android/path_provider.iml" />
+      <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/quick_actions-0.2.2/android/quick_actions.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/quick_actions-0.2.2/android/quick_actions.iml" />
+      <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/sqflite.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android/sqflite.iml" />
+    </modules>
+  </component>
+</project>

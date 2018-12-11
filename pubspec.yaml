@@ -13,6 +13,9 @@ environment:
   sdk: ">=2.0.0-dev.68.0 <3.0.0"
 
 dependencies:
+  home_screen_widgets:
+    path: ../home_screen_widgets/
+
   flutter:
     sdk: flutter
 
@@ -22,6 +25,7 @@ dependencies:
 
   # Utils
   fluttertoast: ^2.1.1
+  quick_actions: ^0.2.2
 
   # Storage
   sqflite: ^0.11.1
