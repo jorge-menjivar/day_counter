@@ -41,6 +41,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_secure_storage:
+    dependency: "direct main"
+    description:
+      name: flutter_secure_storage
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.2"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -52,14 +59,7 @@ packages:
       name: fluttertoast
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.1"
-  home_screen_widgets:
-    dependency: "direct main"
-    description:
-      path: "../home_screen_widgets"
-      relative: true
-    source: path
-    version: "0.0.1"
+    version: "2.1.5"
   matcher:
     dependency: transitive
     description:
@@ -88,13 +88,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.1"
-  quick_actions:
+  pin_code_view:
     dependency: "direct main"
     description:
-      name: quick_actions
+      name: pin_code_view
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.2"
+    version: "0.1.0"
   quiver:
     dependency: transitive
     description:

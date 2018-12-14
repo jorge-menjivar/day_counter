@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
 
+// Storage
+import 'package:sqflite/sqflite.dart';
+import 'utils/counter_database.dart';
 
 
 class WidgetConfigScreen extends StatefulWidget {
@@ -14,99 +17,98 @@ class WidgetConfigScreen extends StatefulWidget {
   createState() => ConfigState();
 }
 
-class ConfigState extends State<WidgetConfigScreen> {
+class ConfigState extends State<WidgetConfigScreen> with WidgetsBindingObserver{
   ConfigState();
 
-  final TextEditingController _controllerName = new TextEditingController();
-  final TextEditingController _controllerValue = new TextEditingController();
-  final _nameFieldKey = GlobalKey<FormFieldState>();
-  final _valueFieldKey = GlobalKey<FormFieldState>();
+  var queryResult;
+  Database db;
+  CounterDatabase counterDatabase = new CounterDatabase();
+
+  final TextStyle _biggerFont = const TextStyle(
+    fontSize: 24.0,
+    color: Colors.black54
+  );
+  final TextStyle _drawerFont = const TextStyle(
+    fontSize: 18.0,
+    color: Colors.black54
+  );
+  final TextStyle _valueStyle = const TextStyle(
+    fontSize: 30.0,
+    color: Colors.green,
+  );
+
+  int tileCount = 0;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 
   @override
   void initState(){
     super.initState();
-    _controllerName.text = "Widget";
-    _controllerValue.text = "0";
+    _initDb();
   }
 
-    @override
+  @override
   void dispose() {
     super.dispose();
   }
 
-  
-
+  void _initDb() async {
+    counterDatabase.getDb().then((res) async{
+      db = res;
+      queryResult = await counterDatabase.getQuery(db);
+      tileCount = (queryResult.length * 2) + 1;
+      this.setState(() => queryResult);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: new AppBar(
-        title: new Text("Set Up Widget"),
+        automaticallyImplyLeading: false,
+        title: new Text("Day Counter", textAlign: TextAlign.center,),
         elevation: 4.0,
       ),
-      body: new Builder(
-        builder: (BuildContext context) {
-          return Container(
-            padding: const EdgeInsets.all(16.0),
-            child: new Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                new TextFormField(
-                  key: _nameFieldKey,
-                  controller: _controllerName,
-                  keyboardType: TextInputType.text,
-                  autocorrect: false,
-                  autofocus: true,
-                  autovalidate: true,
-                  decoration: new InputDecoration(
-                    labelText: "Counter Name",
-                  ),
-                  validator: (text) {
-                      if ( text.length < 1)
-                        return 'Name must be at least 1 character long.';
-                  }
-                ),
-                new SizedBox(
-                  height: 32.0,
-                ),
-                new TextFormField(
-                  key: _valueFieldKey,
-                  controller: _controllerValue,
-                  keyboardType: TextInputType.number,
-                  autocorrect: false,
-                  autofocus: true,
-                  autovalidate: true,
-                  decoration: new InputDecoration(
-                    labelText: "Initial number of days",
-                    ),
-                  validator: (text) {
-                    if (text.contains(new RegExp(r'\D')))
-                      return 'Only numbers';
-                  },
-                ),
-                new Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                  ],
-                ),
-                new SizedBox(
-                  height: 48.0,
-                ),
-                new RaisedButton(
-                  child: new Text("SAVE"),
-                  onPressed: () {},
-                ),
-                new OutlineButton(
-                  child: new Text("DELETE"),
-                  onPressed: () {},
-                )
-              ],
-            )
-          );
-        },
-      )
+      backgroundColor: Colors.white.withOpacity(.97),
+      body: _buildCounterTitles(),
+    );
+  }
+
+  Widget _buildCounterTitles() {
+    return ListView.builder(
+      itemCount: tileCount,
+      // For even rows, the function adds a ListTile row for the word pairing.
+      // For odd rows, the function adds a Divider widget to visually
+      itemBuilder: (context, i){
+        if (i.isOdd) return Divider();
+        int index = i ~/ 2;
+        if (queryResult != null && queryResult.length> 0 && index < queryResult.length){
+          var row = queryResult[index];
+          return _buildRow(row['name'], row['value'], row['last']);
+        }
+        return null;
+      }
+    );
+  }
+
+
+  Widget _buildRow(String name, String value, String last) {
+    // Dismissible so we can swipe it left to delete
+    return ListTile(
+      contentPadding: const EdgeInsets.all(12.0),
+      title: Text(
+        name,
+        textAlign: TextAlign.left,
+        style: _biggerFont,
+      ),
+      trailing: new Text(
+        value,
+        textAlign: TextAlign.right,
+        style: _valueStyle,
+      ), 
+      // Set up this counter to display on the widget
+      onTap: () {}
     );
   }
 }

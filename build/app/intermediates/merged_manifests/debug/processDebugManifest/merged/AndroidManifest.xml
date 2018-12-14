@@ -5,8 +5,8 @@
     android:versionName="1.0.0" >
 
     <uses-sdk
-        android:minSdkVersion="16"
-        android:targetSdkVersion="28" />
+        android:minSdkVersion="18"
+        android:targetSdkVersion="27" />
 
     <!--
          The INTERNET permission is required for development. Specifically,
@@ -27,9 +27,8 @@
         android:appComponentFactory="android.support.v4.app.CoreComponentFactory"
         android:debuggable="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="day_counter"
-        android:supportsRtl="true"
-        android:testOnly="true" >
+        android:label="Day Counter"
+        android:supportsRtl="true" >
         <activity
             android:name="com.prospectusoft.daycounter.MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density"
@@ -54,23 +53,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.prospectusoft.daycounter.widget.ConfigActivity" />
-
-        <receiver android:name="com.prospectusoft.daycounter.widget.widget_service" >
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_info" />
-        </receiver>
-
         <activity android:name="com.prospectusoft.homescreenwidgets.HomeScreenWidgetsPlugin$ConfigHandlerActivity" >
         </activity>
-        <activity
-            android:name="io.flutter.plugins.quickactions.QuickActionsPlugin$ShortcutHandlerActivity"
-            android:exported="false" />
     </application>
 
 </manifest>

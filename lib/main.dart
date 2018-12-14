@@ -4,17 +4,18 @@ import 'add_counter_screen.dart';
 import 'dart:ui';
 
 
-import 'package:home_screen_widgets/home_screen_widgets.dart';
 import 'widget_config_screen.dart';
+import 'settings_screen.dart';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:pin_code_view/pin_code_view.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
 import 'utils/counter_database.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main(){
   runApp(new MyApp());
@@ -43,21 +44,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
-  HomeScreenState() {
-    _widgetHandler();
-  }
+  HomeScreenState();
 
   var queryResult;
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
 
+  // If app is pin protected
+  bool secured = false;
+  String pin;
+  final storage = new FlutterSecureStorage();
+
   final TextStyle _biggerFont = const TextStyle(
     fontSize: 24.0,
-    color: Colors.black54
+    color: Colors.black87
   );
   final TextStyle _drawerFont = const TextStyle(
-    fontSize: 18.0,
-    color: Colors.black54
+    fontSize: 17.0,
+    color: Colors.black87
     );
   final TextStyle _valueStyle = const TextStyle(
     fontSize: 30.0,
@@ -68,13 +72,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-  static const platform = const MethodChannel(
-    'com.prospectusoft.daycounter');
-
   @override
   void initState(){
     super.initState();
-    _sendReadyRequest();
+    _loadPin();
     _initDb();
   }
 
@@ -83,23 +84,15 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     super.dispose();
   }
 
-  Future<Null> _sendReadyRequest() async {
-    await platform.invokeMethod('ready');
+  /// Load Pin from secure storage
+  void _loadPin() async{
+    pin = await storage.read(key: "pin");
+    if (pin != null && pin != "") {
+      secured = true;
+    }
   }
 
-  // Receiving info from widget
-  void _widgetHandler() {
-    HomeScreenWidgets homeScreenWidgets = const HomeScreenWidgets();
-    homeScreenWidgets.initialize((String method, String arguments) {
-      if (method == 'launch') {
-        print('THIS IS A LAUNCHER METHOD');
-        print(arguments);
-        Navigator.push(context, MaterialPageRoute(builder:(context) => WidgetConfigScreen()));
-      }
-    });
-  }
-
-  // Initialize database
+  /// Initialize database
   void _initDb() async {
     counterDatabase.getDb().then((res) async{
       db = res;
@@ -109,7 +102,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     });
   }
 
-  // Transfer user to Add Counter screen
+  /// Transfer user to Add Counter screen
   void _addCounter() async{
     Navigator.push(context, MaterialPageRoute(builder:
       (context) => AddCounterScreen())
@@ -140,8 +133,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.TOP,
         timeInSecForIos: 2,
-        bgcolor: "#e74c3c",
-        textcolor: '#ffffff'
+        backgroundColor: Colors.transparent,
+        textColor: Colors.white,
       );
 
       // Update Screen
@@ -168,10 +161,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       Fluttertoast.showToast(
         msg: "Come back tomorrow",
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
+        gravity: ToastGravity.CENTER,
         timeInSecForIos: 2,
-        bgcolor: "#e74c3c",
-        textcolor: '#ffffff'
+        backgroundColor: Colors.transparent,
+        textColor: Colors.white,
       );
       return;
     }
@@ -180,10 +173,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       Fluttertoast.showToast(
         msg: "$newDays added!",
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
+        gravity: ToastGravity.CENTER,
         timeInSecForIos: 2,
-        bgcolor: "#e74c3c",
-        textcolor: '#ffffff'
+        backgroundColor: Colors.transparent,
+        textColor: Colors.white,
       );
     }
 
@@ -198,6 +191,29 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
   @override
   Widget build(BuildContext context) {
+    if (secured) {
+      return Scaffold(
+        body: PinCode(
+          title: Text(
+            "Enter Pin",
+            style: TextStyle(
+                color: Colors.white, fontSize: 25.0, fontWeight: FontWeight.bold),
+          ),
+          subTitle: Text(
+            "Welcome back",
+            style: TextStyle(color: Colors.white),
+          ),
+          obscurePin: false,
+          codeLength: 4,
+          onCodeEntered: (code) {
+            //callback after full code has been entered
+            if (code.toString() == pin) { //PIN has been succesfully entered
+              setState(() {secured = false;});
+            }
+          },
+        ),
+      );
+    }
     return Scaffold(
       key: _scaffoldKey,
       appBar: new AppBar(
@@ -226,7 +242,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
               icon: Icon(Icons.forum),
               color: Colors.white,
               highlightColor: Colors.green,
-              onPressed:() {}
+              onPressed:() {
+                Navigator.push(context, MaterialPageRoute(builder:(context) => WidgetConfigScreen()));}
               ),
           ],
         ),
@@ -260,24 +277,23 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
             new Container(
               child: new Column(
                 children: <Widget>[
-                  ListTile(
+                  new ListTile(
                     leading: new Icon(
                       Icons.settings,
-                      color: Colors.black54,
+                      color: Colors.black87,
                     ),
                     title: Text(
                       'Settings',
                       textAlign: TextAlign.left,
                       style: _drawerFont,
                     ), 
-                    // TODO go to settings
-                    //onTap: () => Navigator.pop(context);,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen())),
                   ),
                   Divider(),
-                  ListTile(
+                  new ListTile(
                     leading: new Icon(
                       Icons.folder,
-                      color: Colors.black54,
+                      color: Colors.black87,
                     ),
                     title: Text(
                       'Terms of Use and Privacy',

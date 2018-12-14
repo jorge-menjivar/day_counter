@@ -74,8 +74,8 @@ class EditState extends State<EditScreen> {
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.TOP,
           timeInSecForIos: 2,
-          bgcolor: "#e74c3c",
-          textcolor: '#ffffff'
+          backgroundColor: Colors.transparent,
+          textColor: Colors.white,
         );
       }
     });
@@ -90,8 +90,8 @@ class EditState extends State<EditScreen> {
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.TOP,
         timeInSecForIos: 2,
-        bgcolor: "#e74c3c",
-        textcolor: '#ffffff'
+        backgroundColor: Colors.transparent,
+        textColor: Colors.white,
       );
 
       Navigator.pop(context);
@@ -103,7 +103,7 @@ class EditState extends State<EditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: new AppBar(
-        title: new Text("Editing Counter '$pName'"),
+        title: new Text("Editing Counter '$pName'", textAlign: TextAlign.center),
         elevation: 4.0,
       ),
       body: new Builder(
@@ -174,6 +174,11 @@ class EditState extends State<EditScreen> {
                 new OutlineButton(
                   child: new Text("DELETE"),
                   onPressed: _deleteCounter,
+                  borderSide: BorderSide(
+                    color: Colors.red,
+                    style: BorderStyle.solid,
+                  ),
+                  textColor: Colors.red,
                 )
               ],
             )

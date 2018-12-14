@@ -78,8 +78,8 @@ class AddCounterState extends State<AddCounterScreen> {
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.TOP,
           timeInSecForIos: 2,
-          bgcolor: "#e74c3c",
-          textcolor: '#ffffff'
+          backgroundColor: Colors.transparent,
+          textColor: Colors.white,
         );
       }
     });
