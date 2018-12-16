@@ -47,6 +47,8 @@ class EditState extends State<EditScreen> {
 
   // Initizialize Database
   void _initDb() async {
+
+    //TODO make sure that you update the last date when you update or restart so user cannot add days right after such action
     counterDatabase.getDb()
     .then((res) async{
       db = res;
@@ -147,11 +149,6 @@ class EditState extends State<EditScreen> {
                       return 'Only numbers';
                   },
                 ),
-                new Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                  ],
-                ),
                 new SizedBox(
                   height: 48.0,
                 ),
@@ -171,15 +168,99 @@ class EditState extends State<EditScreen> {
                     }
                   }
                 ),
-                new OutlineButton(
-                  child: new Text("DELETE"),
-                  onPressed: _deleteCounter,
-                  borderSide: BorderSide(
-                    color: Colors.red,
-                    style: BorderStyle.solid,
-                  ),
-                  textColor: Colors.red,
-                )
+                new SizedBox(
+                  height: 30,
+                ),
+                new Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    new OutlineButton(
+                      child: new Text("RESTART"),
+                      onPressed: () {
+                        showDialog<void>(
+                          context: context,
+                          barrierDismissible: true, // user can type outside box to dismiss
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Are you sure?'),
+                              content: SingleChildScrollView(
+                                child: ListBody(
+                                  children: <Widget>[
+                                    Text('Do you really want to restart \'$pName\' ?'),
+                                  ],
+                                ),
+                              ),
+                              actions: <Widget>[
+                                FlatButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text("I\'m sure"),
+                                  onPressed: () {
+                                    _updateCounter(pName, "0");
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ]
+                            );
+                          }
+                        );
+                      },
+                      borderSide: BorderSide(
+                        color: Colors.red,
+                        style: BorderStyle.solid,
+                      ),
+                      textColor: Colors.red,
+                    ),
+                    new SizedBox(
+                      width: 20,
+                    ),
+                    new OutlineButton(
+                      child: new Text("DELETE"),
+                      onPressed: () {
+                        showDialog<void>(
+                          context: context,
+                          barrierDismissible: true, // user can type outside box to dismiss
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Are you sure?'),
+                              content: SingleChildScrollView(
+                                child: ListBody(
+                                  children: <Widget>[
+                                    Text('Do you really want to delete \'$pName\' ?'),
+                                  ],
+                                ),
+                              ),
+                              actions: <Widget>[
+                                FlatButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text("I\'m sure"),
+                                  onPressed: () {
+                                    _deleteCounter();
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ]
+                            );
+                          }
+                        );
+                      },
+                      borderSide: BorderSide(
+                        color: Colors.red,
+                        style: BorderStyle.solid,
+                      ),
+                      textColor: Colors.red,
+                    ),
+                  ],
+                ),
               ],
             )
           );

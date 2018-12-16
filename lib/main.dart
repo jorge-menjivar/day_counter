@@ -3,14 +3,13 @@ import 'edit_screen.dart';
 import 'add_counter_screen.dart';
 import 'dart:ui';
 
-
-import 'widget_config_screen.dart';
 import 'settings_screen.dart';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_view/pin_code_view.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -64,13 +63,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     color: Colors.black87
     );
   final TextStyle _valueStyle = const TextStyle(
-    fontSize: 30.0,
-    color: Colors.green,
+    fontSize: 36.0,
+    color: Colors.blue,
   );
 
   int tileCount = 0;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
 
   @override
   void initState(){
@@ -78,11 +78,12 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     _loadPin();
     _initDb();
   }
-
-    @override
+  
+  @override
   void dispose() {
     super.dispose();
   }
+  
 
   /// Load Pin from secure storage
   void _loadPin() async{
@@ -92,15 +93,18 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     }
   }
 
+
+
   /// Initialize database
   void _initDb() async {
     counterDatabase.getDb().then((res) async{
       db = res;
       queryResult = await counterDatabase.getQuery(db);
-      tileCount = (queryResult.length * 2) + 1;
+      tileCount = queryResult.length;
       this.setState(() => queryResult);
     });
   }
+
 
   /// Transfer user to Add Counter screen
   void _addCounter() async{
@@ -108,10 +112,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       (context) => AddCounterScreen())
     ).then((v) async {
       queryResult = await counterDatabase.getQuery(db);
-      tileCount = (queryResult.length * 2) + 1;
+      tileCount = queryResult.length;
       this.setState(() => queryResult);
     });
   }
+
 
   // Transfer user to Edit Counter screen
   void _editCounter(String name, String value, String last) {
@@ -119,7 +124,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       (context) => EditScreen(name: name, value: value, last: last))
     ).then((v) async {
       queryResult = await counterDatabase.getQuery(db);
-      tileCount = (queryResult.length * 2) + 1;
+      tileCount = queryResult.length;
       this.setState(() => queryResult);
     });
   }
@@ -139,7 +144,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
       // Update Screen
       queryResult = await counterDatabase.getQuery(db);
-      tileCount = (queryResult.length * 2) + 1;
+      tileCount = queryResult.length;
       this.setState(() => queryResult);
     });
   }
@@ -189,6 +194,53 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     });
   }
 
+
+  Future<int> _updateAll () async {
+    if (queryResult != null) {
+      for (int i = 0; i < queryResult.length; i++) {
+        var row = queryResult[i];
+        _incrementCounter(row['name'], row['value'], row['last']);
+      }
+    }
+
+    return 0;
+  }
+
+  void _showDeleteDialog(String name) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true, // user can type outside box to dismiss
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Are you sure?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Do you really want to delete \'$name\' ?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text("I\'m sure"),
+              onPressed: () {
+                _deleteCounter(name);
+                Navigator.of(context).pop();
+              },
+            ),
+          ]
+        );
+      }
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     if (secured) {
@@ -221,7 +273,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         title: new Text("Day Counter", textAlign: TextAlign.center,),
         elevation: 4.0,
       ),
-      backgroundColor: Colors.white.withOpacity(.97),
+      backgroundColor: Colors.white.withAlpha(230),
       bottomNavigationBar: BottomAppBar(
         color: Colors.lightBlue,
         shape: new CircularNotchedRectangle(), 
@@ -239,11 +291,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
               },
             ),
             IconButton(
-              icon: Icon(Icons.forum),
+              icon: Icon(Icons.settings),
               color: Colors.white,
               highlightColor: Colors.green,
               onPressed:() {
-                Navigator.push(context, MaterialPageRoute(builder:(context) => WidgetConfigScreen()));}
+                }
               ),
           ],
         ),
@@ -309,20 +361,24 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           ],
         ),
       ),
-      body: _buildCounterTitles(),
+
+      body: RefreshIndicator( // When the user drags to refresh all counters
+        child: _buildCounterTitles(),
+        onRefresh: () {
+          return _updateAll();
+        },
+      ) 
     );
   }
 
   Widget _buildCounterTitles() {
     return ListView.builder(
       itemCount: tileCount,
-      // For even rows, the function adds a ListTile row for the word pairing.
-      // For odd rows, the function adds a Divider widget to visually
+
+      // Getting values from query of counters in database
       itemBuilder: (context, i){
-        if (i.isOdd) return Divider();
-        int index = i ~/ 2;
-        if (queryResult != null && queryResult.length> 0 && index < queryResult.length){
-          var row = queryResult[index];
+        if (queryResult != null && queryResult.length> 0 && i < queryResult.length){
+          var row = queryResult[i];
           return _buildRow(row['name'], row['value'], row['last']);
         }
         return null;
@@ -331,7 +387,33 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   }
 
   Widget _buildRow(String name, String value, String last) {
-    // Dismiossable so we can swipe it left to delete
+
+    // Data for line chart
+    var data = [
+      new ProgressByDate(day: 0, progress: 0, color: Colors.blue),
+      new ProgressByDate(day: 10, progress: 10, color: Colors.green),
+      new ProgressByDate(day: 11, progress: 8, color: Colors.purple),
+    ];
+
+    // Defining the data that corresponds to what on the chart
+    var series = [
+      new charts.Series<ProgressByDate, num>(
+        id: 'Progress',
+        domainFn: (ProgressByDate progressData, _) => progressData.day,
+        measureFn: (ProgressByDate progressData, _) =>progressData.progress,
+        colorFn: (ProgressByDate progressData, _) => progressData.color,
+        data: data,
+      ),
+    ];
+
+    // The line chart used in the cards
+    var chart = new charts.LineChart(
+      series,
+      animate: true,
+    );
+
+
+    // Dismissible so we can swipe it left to delete
     return Dismissible(
       // Icon 'delete' and red background
       background: Container(
@@ -358,25 +440,158 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
             .of(context)
             .showSnackBar(SnackBar(content: Text("$name deleted")));
       },
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12.0),
-        title: Text(
-          name,
-          textAlign: TextAlign.left,
-          style: _biggerFont,
+      child: Card(
+        elevation: 4,
+        margin: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 20
         ),
-        trailing: new Text(
-          value,
-          textAlign: TextAlign.right,
-          style: _valueStyle,
-        ), 
-        onLongPress: () {
-          // Send to Edit Screen
-          _editCounter(name, value, last);
-        },
-        // Try to add days to this counter
-        onTap: () => _incrementCounter(name, value, last)
-      ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+
+            // Title of card
+            Stack(
+              children: <Widget>[ 
+                ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+                  title: Text(
+                    value,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                  subtitle: new Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18
+                    ),
+                  ),
+                ),
+                ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(0, 16, 4, 8),
+                  trailing: PopupMenuButton(
+                    icon: Icon(
+                      Icons.more_vert
+                    ),
+                    itemBuilder: (v) => <PopupMenuItem<String>>[
+                          new PopupMenuItem<String>(
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.flag,
+                                  color: Colors.red
+                                ),
+                                title: Text(
+                                  "View Red Flags"
+                                ),
+                              ),
+                              value: 'red'),
+                          new PopupMenuItem<String>(
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.edit,
+                                ),
+                                title: Text(
+                                  "Edit"
+                                ),
+                              ),
+                              value: 'edit'),
+                          new PopupMenuItem<String>(
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.delete_forever,
+                                  color: Colors.red
+                                ),
+                                title: Text(
+                                  "Delete"
+                                ),
+                              ),
+                              value: 'delete'),
+                        ],
+                    onSelected: (v) {
+                      switch (v) {
+                        case 'red': break;
+                        case 'edit': _editCounter(name, value, last); break;
+                        case 'delete': _showDeleteDialog(name); break;
+                      }
+                    }),
+                )
+              ],
+            ),
+            
+
+            // Line Chart
+            Container(
+              color: Colors.black.withAlpha(15),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(14, 8, 8, 8),
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return new SizedBox(
+                      height: 150.0,
+                      width: constraints.maxWidth,
+                      child: chart,
+                    );
+                  }
+                )
+              ) 
+            ),
+
+            // Action buttons in the card
+            ButtonTheme.bar(
+              alignedDropdown: true,
+              child: ListTile(
+                leading: FlatButton(
+                  child: const Text('VIEW MORE'),
+                  onPressed: () { 
+                    //TODO create a full screen dialog that shows the counter details
+                  },
+                ),
+                trailing: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    IconButton(
+                      icon: Icon(
+                        Icons.flag,
+                        color: Colors.red
+                      ),
+                      iconSize: 30,
+                      onPressed: () {
+                        
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.add_circle,
+                        color: Colors.blue
+                      ),
+                      iconSize: 35,
+                      onPressed: () => _incrementCounter(name, value, last)
+                    ),
+                  ]
+                ),
+              ),
+            ),
+          ]
+        )
+      )
     );
+  }
+}
+
+/// Used to set up the line charts
+class ProgressByDate {
+  int day;
+  double progress;
+  charts.Color color;
+
+  ProgressByDate({this.day, this.progress, Color color}) {
+    this.color = new charts.Color(r: color.red, g: color.green, b: color.blue, a: color.alpha);
   }
 }

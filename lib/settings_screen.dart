@@ -74,7 +74,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
         minute: int.parse(timeString.split(":")[1]),
       );
     }
-    
+
     // Reading the switch for REMINDER
     String reminderString = await storage.read(key: "reminder");
     reminderString == 'false' ? reminder = false : reminder = true;
@@ -119,7 +119,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
       String pin;
       showDialog<void>(
         context: context,
-        barrierDismissible: true, // user must can type outside box to dismiss
+        barrierDismissible: true, // user can type outside box to dismiss
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Before you start!'),
