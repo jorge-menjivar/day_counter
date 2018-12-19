@@ -21,9 +21,7 @@ class AddCounterState extends State<AddCounterScreen> {
   AddCounterState();
 
   final TextEditingController _controllerName = new TextEditingController();
-  final TextEditingController _controllerValue = new TextEditingController();
   final _nameFieldKey = GlobalKey<FormFieldState>();
-  final _valueFieldKey = GlobalKey<FormFieldState>();
 
   bool _firstTry = true;
 
@@ -31,11 +29,30 @@ class AddCounterState extends State<AddCounterScreen> {
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
 
+  String modifiedDate;
+  String modifiedRedable;
 
   @override
   void initState(){
     super.initState();
     _initDb();
+    var now = DateTime.now();
+    String month;
+    switch (now.month) {
+      case 1: month = "January"; break;
+      case 2: month = "February"; break;
+      case 3: month = "March"; break;
+      case 4: month = "April"; break;
+      case 5: month = "May"; break;
+      case 6: month = "June"; break;
+      case 7: month = "July"; break;
+      case 8: month = "August"; break;
+      case 9: month = "September"; break;
+      case 10: month = "October"; break;
+      case 11: month = "November"; break;
+      case 12: month = "December"; break;
+    }
+    modifiedRedable = "$month ${now.day}, ${now.year}";
   }
 
     @override
@@ -54,22 +71,20 @@ class AddCounterState extends State<AddCounterScreen> {
   }
 
   // Addind a new counter to database and closing screen
-  void _createCounter(String name, String value) async{
+  void _createCounter(String name) async{
     await counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0) {
-        int year = DateTime.now().year;
-        int month = DateTime.now().month;
-        int day = DateTime.now().day;
-        var last = "$year-$month-$day";
+        var last = DateTime.now().millisecondsSinceEpoch;
+        var initial = last;
 
-        if (value == "")
-          value = "0";
-
-        
-        // So it does not look like 01, instead 1
-        int v = int.parse(value);
-
-        await counterDatabase.addToDb(db, name, v.toString(), last);
+        if (modifiedDate != null){
+          var lastFormatted = DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate));
+          var v = DateTime.now().difference(lastFormatted).inDays;
+          await counterDatabase.addToDb(db, name, v.toString(), modifiedDate, last.toString());
+        }
+        else {
+          await counterDatabase.addToDb(db, name, "0", initial.toString(), last.toString());
+        }
         Navigator.pop(context);
       }
       else {
@@ -83,6 +98,30 @@ class AddCounterState extends State<AddCounterScreen> {
         );
       }
     });
+  }
+
+  Future <void> _modifyDate(DateTime v) async {
+    modifiedDate = v.millisecondsSinceEpoch.toString();
+
+
+    String month;
+    switch (v.month) {
+      case 1: month = "January"; break;
+      case 2: month = "February"; break;
+      case 3: month = "March"; break;
+      case 4: month = "April"; break;
+      case 5: month = "May"; break;
+      case 6: month = "June"; break;
+      case 7: month = "July"; break;
+      case 8: month = "August"; break;
+      case 9: month = "September"; break;
+      case 10: month = "October"; break;
+      case 11: month = "November"; break;
+      case 12: month = "December"; break;
+    }
+
+    setState(() {modifiedRedable = "$month ${v.day}, ${v.year}";});
+    return;
   }
 
 
@@ -112,28 +151,44 @@ class AddCounterState extends State<AddCounterScreen> {
                     labelText: "Counter Name",
                   ),
                   validator: (text) {
-                      if (_firstTry == false && text.length < 1)
-                        return 'Name must be at least 1 character long.';
+                    if (_firstTry == false && text.length < 1)
+                      return 'Name must be at least 1 character long.';
                   }
                 ),
                 new SizedBox(
                   height: 32.0,
                 ),
-                new TextFormField(
-                  key: _valueFieldKey,
-                  controller: _controllerValue,
-                  keyboardType: TextInputType.number,
-                  autocorrect: false,
-                  autofocus: true,
-                  autovalidate: true,
-                  decoration: new InputDecoration(
-                    labelText: "Initial number of days",
-                    hintText: "Optional: Default is 0",
-                    ),
-                  validator: (text) {
-                    if (text.contains(new RegExp(r'\D')))
-                      return 'Only numbers';
-                  },
+                new ListTile(
+                  leading: Icon(
+                    Icons.access_time,
+                    color: Colors.black87,
+                  ),
+                  title: new Text(
+                    "Optional: Date you started",
+                  ),
+                ),
+                new ListTile(
+                  title: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      new Text(
+                        modifiedRedable,
+                        style: TextStyle(
+                          // If switch is on display enabled
+                          color: (modifiedDate != null) ? Colors.black87 : Colors.black45,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w400,
+                        )
+                      ),
+                    ],
+                  ),
+                  onTap: () => showDatePicker(
+                    initialDate: new DateTime.now(),
+                    firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
+                    lastDate: new DateTime.now().add(new Duration(days: 3000)),
+                    context: context,
+                  ).then((v) async => await _modifyDate(v))
                 ),
                 new Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -147,16 +202,8 @@ class AddCounterState extends State<AddCounterScreen> {
                   child: new Text("ADD COUNTER"),
                   onPressed: (){
                     _firstTry = false;
-                    if (_nameFieldKey.currentState.validate() && _valueFieldKey.currentState.validate()){
-                      Scaffold
-                      .of(context)
-                      .showSnackBar(
-                        SnackBar(
-                          content: Text('Saving Data'),
-                          duration: new Duration(seconds: 4)
-                        )
-                      );
-                      _createCounter(_controllerName.text.toString(), _controllerValue.text.toString());
+                    if (_nameFieldKey.currentState.validate()){
+                      _createCounter(_controllerName.text.toString());
                     }
                   }
                 ),

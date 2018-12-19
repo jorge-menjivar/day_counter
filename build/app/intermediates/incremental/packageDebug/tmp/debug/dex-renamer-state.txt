@@ -1,4 +1,0 @@
-#Sun Dec 16 01:03:16 PST 2018
-base.0=/Users/jorge/Documents/Flutter/day_counter/build/app/intermediates/transforms/dexMerger/debug/0
-path.0=classes.dex
-renamed.0=classes.dex

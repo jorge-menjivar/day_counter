@@ -22,22 +22,23 @@ class CounterDatabase {
             "CREATE TABLE Counters ("
                 "${Counter.dbName} TEXT PRIMARY KEY, "
                 "${Counter.dbValue} TEXT, "
+                "${Counter.dbInitial} TEXT, "
                 "${Counter.dbLast} TEXT "
                 ")");
       });
   }
 
   // Add new row to databse
-  Future <int> addToDb(Database db, String name, String value, String last) async{
+  Future <int> addToDb(Database db, String name, String value, String initial, String last) async{
     return await db.rawInsert(
           'INSERT INTO '
-              'Counters(${Counter.dbName}, ${Counter.dbValue}, ${Counter.dbLast})'
-              ' VALUES("$name", "$value", "$last")');
+              'Counters(${Counter.dbName}, ${Counter.dbValue}, ${Counter.dbInitial}, ${Counter.dbLast})'
+              ' VALUES("$name", "$value", "$initial", "$last")');
   }
 
   // Update row in database
-  Future<int> updateCounter(Database db, String name, String value, String last) async {
-    return await db.rawUpdate('UPDATE Counters SET ${Counter.dbValue} = "$value", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
+  Future<int> updateCounter(Database db, String name, String initial, String last) async {
+    return await db.rawUpdate('UPDATE Counters SET ${Counter.dbInitial} = "$initial", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
   }
 
   // Get map of the desired searched item

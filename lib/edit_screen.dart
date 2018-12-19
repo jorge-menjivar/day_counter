@@ -11,16 +11,21 @@ import 'utils/counter_database.dart';
 
 
 class EditScreen extends StatefulWidget {
-  final String name, value, last;
-  EditScreen({this.name,  this.value, this.last});
+  final String name, value, initial, last;
+  EditScreen({
+    @required this.name,
+    @required this.value,
+    @required this.initial,
+    @required this.last
+  });
 
   @override
   createState() => EditState(pName: name, pValue: value, pLast: last);
 }
 
 class EditState extends State<EditScreen> {
-  final String pName, pValue, pLast;
-  EditState({this.pName,  this.pValue, this.pLast});
+  final String pName, pValue, pInitial, pLast;
+  EditState({this.pName,  this.pValue, this.pInitial, this.pLast});
 
   final TextEditingController _controllerName = new TextEditingController();
   final TextEditingController _controllerValue = new TextEditingController();
@@ -30,6 +35,10 @@ class EditState extends State<EditScreen> {
   var queryResult;
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
+
+
+  String modifiedDate;
+  String modifiedRedable;
 
 
   @override
@@ -53,6 +62,24 @@ class EditState extends State<EditScreen> {
     .then((res) async{
       db = res;
     });
+
+    var now = DateTime.now();
+    String month;
+    switch (now.month) {
+      case 1: month = "January"; break;
+      case 2: month = "February"; break;
+      case 3: month = "March"; break;
+      case 4: month = "April"; break;
+      case 5: month = "May"; break;
+      case 6: month = "June"; break;
+      case 7: month = "July"; break;
+      case 8: month = "August"; break;
+      case 9: month = "September"; break;
+      case 10: month = "October"; break;
+      case 11: month = "November"; break;
+      case 12: month = "December"; break;
+    }
+    modifiedRedable = "$month ${now.day}, ${now.year}";
   }
 
   // Save the changes to database and close screen
@@ -62,11 +89,18 @@ class EditState extends State<EditScreen> {
     await counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0 || pName == name) {
         if (name == pName){
-          await counterDatabase.updateCounter(db, name, v.toString(), pLast);
+          if (modifiedDate != null){
+            var lastFormatted = DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate));
+            var v = DateTime.now().difference(lastFormatted).inDays;
+            await counterDatabase.updateCounter(db, name, modifiedDate, pLast);
+          }
+          else {
+            await counterDatabase.updateCounter(db, name, v.toString(), pLast);
+          }
         }
         else {
           counterDatabase.deleteCounter(db, pName);
-          counterDatabase.addToDb(db, name, v.toString(), pLast);
+          counterDatabase.addToDb(db, name, v.toString(), modifiedDate, pLast);
         }
         Navigator.pop(context);
       }
@@ -98,6 +132,31 @@ class EditState extends State<EditScreen> {
 
       Navigator.pop(context);
     });
+  }
+
+
+  Future <void> _modifyDate(DateTime v) async {
+    modifiedDate = v.millisecondsSinceEpoch.toString();
+
+
+    String month;
+    switch (v.month) {
+      case 1: month = "January"; break;
+      case 2: month = "February"; break;
+      case 3: month = "March"; break;
+      case 4: month = "April"; break;
+      case 5: month = "May"; break;
+      case 6: month = "June"; break;
+      case 7: month = "July"; break;
+      case 8: month = "August"; break;
+      case 9: month = "September"; break;
+      case 10: month = "October"; break;
+      case 11: month = "November"; break;
+      case 12: month = "December"; break;
+    }
+
+    setState(() {modifiedRedable = "$month ${v.day}, ${v.year}";});
+    return;
   }
 
 
@@ -134,20 +193,37 @@ class EditState extends State<EditScreen> {
                 new SizedBox(
                   height: 32.0,
                 ),
-                new TextFormField(
-                  key: _valueFieldKey,
-                  controller: _controllerValue,
-                  keyboardType: TextInputType.number,
-                  autocorrect: false,
-                  autofocus: true,
-                  autovalidate: true,
-                  decoration: new InputDecoration(
-                    labelText: "Initial number of days",
-                    ),
-                  validator: (text) {
-                    if (text.contains(new RegExp(r'\D')))
-                      return 'Only numbers';
-                  },
+                new ListTile(
+                  leading: Icon(
+                    Icons.access_time,
+                    color: Colors.black87,
+                  ),
+                  title: new Text(
+                    "Optional: Date you started",
+                  ),
+                ),
+                new ListTile(
+                  title: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      new Text(
+                        modifiedRedable,
+                        style: TextStyle(
+                          // If switch is on display enabled
+                          color: (modifiedDate != null) ? Colors.black87 : Colors.black45,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w400,
+                        )
+                      ),
+                    ],
+                  ),
+                  onTap: () => showDatePicker(
+                    initialDate: new DateTime.now(),
+                    firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
+                    lastDate: new DateTime.now().add(new Duration(days: 3000)),
+                    context: context,
+                  ).then((v) async => await _modifyDate(v))
                 ),
                 new SizedBox(
                   height: 48.0,

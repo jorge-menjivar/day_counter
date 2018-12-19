@@ -15,6 +15,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:sqflite/sqflite.dart';
 import 'utils/counter_database.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'utils/flags_database.dart';
 
 void main(){
   runApp(new MyApp());
@@ -48,6 +49,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   var queryResult;
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
+  FlagsDatabase flagsDatabase = new FlagsDatabase();
+  var dataLists = List<List<ProgressByDate>>();
 
   // If app is pin protected
   bool secured = false;
@@ -101,8 +104,102 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       db = res;
       queryResult = await counterDatabase.getQuery(db);
       tileCount = queryResult.length;
+      _refreshData();
       this.setState(() => queryResult);
     });
+  }
+
+  /// Function to refresh the data from all the counters with the parameters set below
+  void _refreshData() {
+    // TODO edit parameters below from machine learning
+    _getData(5, 1.7);
+  }
+
+  /// Gets the data to display on the chart for all counters.
+  void _getData(final int minDayPenalty, double extraPenalty) async {
+    int size = queryResult.length;
+    for (int i = 0; i < size; i++) {
+      var row = queryResult[i];
+      String name = row['name'];
+      String initial = row['initial'];
+      await flagsDatabase.getDb(name).then((res) async {
+        await flagsDatabase.getQuery(res).then((queryR) async {
+          _getDataList(i, queryR, initial, minDayPenalty, extraPenalty);
+        });
+      });
+    }
+    setState(() {});
+  }
+
+  /// Algorithm to get chart data from the red flags in database.
+  void _getDataList (int n, dynamic results, String initial,  final int minDayExtraPenalty, final double extraPenalty) {
+
+    // The data we will later return.
+    List<ProgressByDate> data = new List<ProgressByDate>();
+
+    // The day the counter was started
+    DateTime date1 = DateTime.fromMillisecondsSinceEpoch(int.parse(initial));
+
+    // Starting the data with the initial day as our first point.
+    data.add(new ProgressByDate(day: 0, progress: 0, color: Colors.blue));
+
+    double progress = 0;
+    int days = 0;
+
+    DateTime date2;
+
+    final int size = results.length;
+    for (int i = 0; i < size; i++) {
+      double penalty = 0;
+
+      var row = results[i];
+
+      // Gettin the next flag date from the database
+      date2 = DateTime.fromMillisecondsSinceEpoch(int.parse(row['date']));
+
+      // The difference between the last flag and this flag.
+      int difference = date2.difference(date1).inDays;
+      days += difference;
+
+      // Adding the difference to the progress before penalizing.
+      progress += difference;
+
+      // Adding a point before the penalties so that it represents the loss
+      data.add(new ProgressByDate(day: days-1, progress: progress, color: Colors.red));
+
+      // If extra penalty should be applied
+      if (difference <= minDayExtraPenalty) {
+        penalty = (progress * .5) * (extraPenalty);
+      }
+
+      else {
+        penalty = (progress * .5);
+      }
+
+      // Adding penalties
+      progress -= penalty;
+
+      // Adding starting point for the following progress (The following blue line), after penalty
+      data.add(new ProgressByDate(day: days, progress: progress, color: Colors.blue));
+
+      date1 = date2;
+    }
+
+    date2 = DateTime.now();
+    int difference = date2.difference(date1).inDays;
+    days += difference;
+    progress += difference;
+
+    data.add(new ProgressByDate(day: days, progress: progress, color: Colors.blue));
+    
+    // If the data is not yet part of the list then initialize it
+    if (n >= dataLists.length){
+      dataLists.add(data); 
+    }
+    // Otherwise just set its value to the appropriate place in the list
+    else {
+      dataLists[n] = data;
+    }
   }
 
 
@@ -113,15 +210,15 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     ).then((v) async {
       queryResult = await counterDatabase.getQuery(db);
       tileCount = queryResult.length;
-      this.setState(() => queryResult);
+      _refreshData();
     });
   }
 
 
-  // Transfer user to Edit Counter screen
-  void _editCounter(String name, String value, String last) {
+  /// Transfer user to Edit Counter screen
+  void _editCounter(String name, String value, String initial, String last) {
     Navigator.push(context, MaterialPageRoute(builder:
-      (context) => EditScreen(name: name, value: value, last: last))
+      (context) => EditScreen(name: name, value: value, initial: initial, last: last))
     ).then((v) async {
       queryResult = await counterDatabase.getQuery(db);
       tileCount = queryResult.length;
@@ -132,6 +229,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   // Delete this counter from the database
   void _deleteCounter(String name) async{
     counterDatabase.deleteCounter(db, name).then((v) async {
+      await flagsDatabase.getDb(name).then((dab) async{
+        await flagsDatabase.deleteDb(name);
+      });
 
       Fluttertoast.showToast(
         msg: "$name deleted!",
@@ -151,13 +251,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
   // The main method where the math to calculate if days should be added is done.
   void _incrementCounter(String name, String valueString, String lastString) async{
-    DateTime _last = DateTime.parse(lastString);
-    int _counter = int.parse(valueString);
 
-    int year = DateTime.now().year;
-    int month = DateTime.now().month;
-    int day = DateTime.now().day;
-    var _today = DateTime.parse("$year-$month-$day");
+    DateTime _last = DateTime.fromMillisecondsSinceEpoch(int.parse(lastString));
+    int _counter = int.parse(valueString);
+    var _today = DateTime.now();
 
     // The library DateTime automatically calculates the day difference for us.
     int newDays = _today.difference(_last).inDays;
@@ -186,11 +283,13 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     }
 
     // Saving update to device
-    await counterDatabase.updateCounter(db, name, _counter.toString(), _today.toString()).then((r) async {
+    var todayEpoch = DateTime.now().millisecondsSinceEpoch;
+    await counterDatabase.updateCounter(db, name, _counter.toString(), todayEpoch.toString()).then((r) async {
 
       // Updating screen
       var result = await counterDatabase.getQuery(db);
-      this.setState(() => queryResult = result);
+      queryResult = result;
+      _refreshData();
     });
   }
 
@@ -201,6 +300,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         var row = queryResult[i];
         _incrementCounter(row['name'], row['value'], row['last']);
       }
+
+      _refreshData();
     }
 
     return 0;
@@ -238,6 +339,75 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         );
       }
     );
+  }
+
+
+  Future<void> _addRedFlagToDb (int i, DateTime dateTime) async{
+    var row = queryResult[i];
+    String name = row['name'];
+    String initial = row['initial'];
+
+    // The initial date of the counter
+    DateTime initDate = DateTime.fromMillisecondsSinceEpoch(int.parse(initial));
+
+    // The date passed from the date picker
+    String date = dateTime.millisecondsSinceEpoch.toString();
+
+    // Setting the millisecondsSinceEpoch to the beginning of the day of today.
+    var today = DateTime(
+      DateTime.now().year, DateTime.now().month, DateTime.now().day
+    );
+
+    // Setting the millisecondsSinceEpoch to the beginning of the day if the flag is for today.
+    if (DateTime.now().difference(dateTime).inDays == 0) {
+      var d = DateTime(
+        dateTime.year, dateTime.month, dateTime.day
+      );
+      date = d.millisecondsSinceEpoch.toString();
+    }
+
+    int initDif = today.difference(initDate).inDays;
+    int curDif = today.difference(dateTime).inDays;
+
+    // Making sure the flag date is after initial date and before today's date
+    if (curDif >= 0 && curDif < initDif) {
+
+      // Making sure flag does not already exists
+      await flagsDatabase.getDb(name).then((db) async {
+        await flagsDatabase.getFlagQuery(db, date).then((q) async {
+          if (q.length == 0){
+            await flagsDatabase.addToDb(db, date).then((v) {
+              _refreshData();
+            });
+          }
+
+          else {
+            Fluttertoast.showToast(
+              msg: "Flag already exists",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIos: 2,
+              backgroundColor: Colors.transparent,
+              textColor: Colors.white,
+            );
+          }
+        });
+      });
+    }
+
+    // Print toast if flag is invalid
+    else {
+      Fluttertoast.showToast(
+        msg: "Date is invalid",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIos: 2,
+        backgroundColor: Colors.transparent,
+        textColor: Colors.white,
+      );
+    }
+
+    return;
   }
 
 
@@ -352,7 +522,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       textAlign: TextAlign.left,
                       style: _drawerFont,
                     ), 
-                    // TODO go to settings
+                    // TODO go to privacy
                     //onTap: () => Navigator.pop(context);,
                   ),
                 ]
@@ -379,21 +549,28 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       itemBuilder: (context, i){
         if (queryResult != null && queryResult.length> 0 && i < queryResult.length){
           var row = queryResult[i];
-          return _buildRow(row['name'], row['value'], row['last']);
+          return _buildRow(i, row['name'], row['value'], row['initial'], row['last']);
         }
         return null;
       }
     );
   }
 
-  Widget _buildRow(String name, String value, String last) {
+  Widget _buildRow(int i, String name, String value, String intial, String last) {
 
-    // Data for line chart
+    // In case flags have not been loaded yet
+    var dataBackup;
+    if (i >= dataLists.length) {
+       dataBackup = [
+        new ProgressByDate(day: 0, progress: 0, color: Colors.blue),
+      ];
+    }
+    /*
     var data = [
       new ProgressByDate(day: 0, progress: 0, color: Colors.blue),
       new ProgressByDate(day: 10, progress: 10, color: Colors.green),
       new ProgressByDate(day: 11, progress: 8, color: Colors.purple),
-    ];
+    ];*/
 
     // Defining the data that corresponds to what on the chart
     var series = [
@@ -402,7 +579,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         domainFn: (ProgressByDate progressData, _) => progressData.day,
         measureFn: (ProgressByDate progressData, _) =>progressData.progress,
         colorFn: (ProgressByDate progressData, _) => progressData.color,
-        data: data,
+        data: (i < dataLists.length) ? dataLists[i] : dataBackup,
       ),
     ];
 
@@ -516,7 +693,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                     onSelected: (v) {
                       switch (v) {
                         case 'red': break;
-                        case 'edit': _editCounter(name, value, last); break;
+                        case 'edit': _editCounter(name, value, intial, last); break;
                         case 'delete': _showDeleteDialog(name); break;
                       }
                     }),
@@ -563,7 +740,12 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       ),
                       iconSize: 30,
                       onPressed: () {
-                        
+                        showDatePicker(
+                          initialDate: new DateTime.now(),
+                          firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
+                          lastDate: new DateTime.now().add(new Duration(days: 3000)),
+                          context: context,
+                        ).then((v) async => _addRedFlagToDb(i, v));
                       },
                     ),
                     IconButton(

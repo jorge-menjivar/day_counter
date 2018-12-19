@@ -1,0 +1,77 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'flags_model.dart';
+
+
+class FlagsDatabase {
+
+  /// Initizalize this database and return it
+  Future getDb(String id) async {
+    assert (id != null && id != "");
+    // Get a location using path_provider
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, '${id}Flags');
+    return await openDatabase(path, version: 1,
+      onCreate: (Database db, int version) async {
+        // When creating the db, create the table
+        // THE FIRST ENTRY IS NULL SO THAT IT IS EASIER TO ADD FLAGS LATER
+        await db.execute(
+            "CREATE TABLE Flags ("
+                "${Flags.dbDate} TEXT PRIMARY KEY "
+                ")");
+      });
+  }
+
+  /// Add new row to databse
+  Future <int> addToDb(Database db, String date) async{
+    return await db.rawInsert(
+          'INSERT INTO '
+              'Flags(${Flags.dbDate})'
+              ' VALUES("$date")');
+  }
+
+  /// Get map of the desired searched item
+  Future<List<Map>> getFlagQuery(Database db, String date) async{
+    var result = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} = "$date"');
+    return result;
+  }
+
+  /// Delete requested flag
+  Future<int> deleteFlag(Database db, String date) async{
+    return db.rawDelete('DELETE FROM Flags WHERE ${Flags.dbDate} = "$date"');
+  }
+
+  /// Get query of all the rows in database
+  Future getQuery(Database db) async {
+    var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} ASC');
+    if (query.length == 0)print('No Flags');
+    return query;
+  }
+
+  /// Deletes database of the given name
+  Future<String> deleteDb(String id) async {
+    assert (id != null && id != "");
+    // Get a location using path_provider
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, '${id}Flags');
+
+    // make sure the folder exists
+    if (await Directory(dirname(path)).exists()) {
+      await deleteDatabase(path);
+    } else {
+      try {
+        await Directory(dirname(path)).create(recursive: true);
+      } catch (e) {
+        print(e);
+      }
+    }
+    return path;
+  }
+
+
+}
