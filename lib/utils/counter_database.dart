@@ -10,7 +10,7 @@ import 'counter_model.dart';
 
 class CounterDatabase {
 
-  // Initizalize this database and return it
+  /// Initizalize this database and return it
   Future getDb() async {
     // Get a location using path_provider
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
@@ -28,7 +28,7 @@ class CounterDatabase {
       });
   }
 
-  // Add new row to databse
+  /// Add new row to databse
   Future <int> addToDb(Database db, String name, String value, String initial, String last) async{
     return await db.rawInsert(
           'INSERT INTO '
@@ -36,27 +36,51 @@ class CounterDatabase {
               ' VALUES("$name", "$value", "$initial", "$last")');
   }
 
-  // Update row in database
-  Future<int> updateCounter(Database db, String name, String initial, String last) async {
-    return await db.rawUpdate('UPDATE Counters SET ${Counter.dbInitial} = "$initial", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
+  /// Update row in database
+  Future<int> updateCounter(Database db, String name, String value, String last) async {
+    return await db.rawUpdate('UPDATE Counters SET ${Counter.dbValue} = "$value", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
   }
 
-  // Get map of the desired searched item
+  /// Update the initial time for the row in database
+  Future<int> updateCounterAndInitial(Database db, String name, String value, String initial, String last) async {
+    return await db.rawUpdate('UPDATE Counters SET ${Counter.dbValue} = "$value", ${Counter.dbInitial} = "$initial", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
+  }
+
+  /// Get map of the desired searched item
   Future<List<Map>> getCounterQuery(Database db, String name) async{
     var result = await db.rawQuery('SELECT * FROM Counters WHERE ${Counter.dbName} = "$name"');
     return result;
   }
 
-  // Delete requested counters
+  /// Delete requested counters
   Future<int> deleteCounter(Database db, String name) async{
     return db.rawDelete('DELETE FROM Counters WHERE ${Counter.dbName} = "$name"');
   }
 
- // Get query of all the rows in database
+  /// Get query of all the rows in database
   Future getQuery(Database db) async {
     var query = await db.rawQuery('SELECT * FROM Counters ORDER BY ${Counter.dbName} ASC');
     if (query.length == 0)print('No Counters');
     return query;
+  }
+
+  /// Deletes the database
+  Future<String> deleteDb() async {
+    // Get a location using path_provider
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, 'counters');
+
+    // make sure the folder exists
+    if (await Directory(dirname(path)).exists()) {
+      await deleteDatabase(path);
+    } else {
+      try {
+        await Directory(dirname(path)).create(recursive: true);
+      } catch (e) {
+        print(e);
+      }
+    }
+    return path;
   }
 
 }

@@ -74,4 +74,23 @@ class FlagsDatabase {
   }
 
 
+  /// Renames the file name of the given database
+  void renameDatabase(String id, String newId) async {
+    assert (id != null && id != "");
+    assert (newId != null && newId != "");
+
+    // Get a location using path_provider
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, '${id}Flags');
+
+    // New directory for the file (new name)
+    String newPath = join(documentsDirectory.path, '${newId}Flags');
+
+    // renaming
+    var file = File(path);
+    file.rename(newPath);
+
+    return;
+  }
+
 }

@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 // Storage
 import 'package:sqflite/sqflite.dart';
 import 'utils/counter_database.dart';
+import 'utils/flags_database.dart';
 
 
 class EditScreen extends StatefulWidget {
@@ -20,24 +21,26 @@ class EditScreen extends StatefulWidget {
   });
 
   @override
-  createState() => EditState(pName: name, pValue: value, pLast: last);
+  createState() => EditState(pName: name, pValue: value, pInitial: initial, pLast: last);
 }
 
 class EditState extends State<EditScreen> {
   final String pName, pValue, pInitial, pLast;
-  EditState({this.pName,  this.pValue, this.pInitial, this.pLast});
+  EditState({
+    @required this.pName, 
+    @required this.pValue,
+    @required this.pInitial,
+    @required this.pLast});
 
   final TextEditingController _controllerName = new TextEditingController();
-  final TextEditingController _controllerValue = new TextEditingController();
   final _nameFieldKey = GlobalKey<FormFieldState>();
-  final _valueFieldKey = GlobalKey<FormFieldState>();
 
   var queryResult;
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
+  FlagsDatabase flagsDatabase = new FlagsDatabase();
 
-
-  String modifiedDate;
+  String initialDate;
   String modifiedRedable;
 
 
@@ -45,27 +48,10 @@ class EditState extends State<EditScreen> {
   void initState(){
     super.initState();
     _initDb();
-    _controllerName.text = pName;
-    _controllerValue.text = pValue;
-  }
-
-    @override
-  void dispose() {
-    super.dispose();
-  }
-
-  // Initizialize Database
-  void _initDb() async {
-
-    //TODO make sure that you update the last date when you update or restart so user cannot add days right after such action
-    counterDatabase.getDb()
-    .then((res) async{
-      db = res;
-    });
-
-    var now = DateTime.now();
+    initialDate = pInitial;
+    var initial = DateTime.fromMillisecondsSinceEpoch(int.parse(pInitial));
     String month;
-    switch (now.month) {
+    switch (initial.month) {
       case 1: month = "January"; break;
       case 2: month = "February"; break;
       case 3: month = "March"; break;
@@ -79,30 +65,44 @@ class EditState extends State<EditScreen> {
       case 11: month = "November"; break;
       case 12: month = "December"; break;
     }
-    modifiedRedable = "$month ${now.day}, ${now.year}";
+    modifiedRedable = "$month ${initial.day}, ${initial.year}";
+    _controllerName.text = pName;
   }
 
-  // Save the changes to database and close screen
-  void _updateCounter(String name, String value) async{
-    // So it does not look like 01, instead 1
-    int v = int.parse(value);
+    @override
+  void dispose() {
+    super.dispose();
+  }
+
+  /// Initizialize Database
+  void _initDb() async {
+    
+    counterDatabase.getDb().then((res) async{
+      db = res;
+      var result = await counterDatabase.getQuery(db);
+      this.setState(() => queryResult = result);
+    });
+  }
+
+  /// Save the changes to database and close screen
+  void _updateCounter(String name) async{
     await counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0 || pName == name) {
-        if (name == pName){
-          if (modifiedDate != null){
-            var lastFormatted = DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate));
-            var v = DateTime.now().difference(lastFormatted).inDays;
-            await counterDatabase.updateCounter(db, name, modifiedDate, pLast);
-          }
-          else {
-            await counterDatabase.updateCounter(db, name, v.toString(), pLast);
-          }
+        var initial = DateTime.fromMillisecondsSinceEpoch(int.parse(initialDate));
+        int difference = DateTime.now().difference(initial).inDays;
+
+        if (name == pName) {
+          await counterDatabase.updateCounterAndInitial(db, name, difference.toString(), initialDate, pLast);
         }
+
         else {
           counterDatabase.deleteCounter(db, pName);
-          counterDatabase.addToDb(db, name, v.toString(), modifiedDate, pLast);
+          counterDatabase.addToDb(db, name, difference.toString(), initialDate, pLast);
+          flagsDatabase.renameDatabase(pName, name);
         }
+
         Navigator.pop(context);
+
       }
       else {
         Fluttertoast.showToast(
@@ -121,6 +121,8 @@ class EditState extends State<EditScreen> {
   void _deleteCounter() async{
     counterDatabase.deleteCounter(db, pName).then((v) async {
 
+      await flagsDatabase.deleteDb(pName);
+
       Fluttertoast.showToast(
         msg: "$pName deleted!",
         toastLength: Toast.LENGTH_SHORT,
@@ -136,8 +138,7 @@ class EditState extends State<EditScreen> {
 
 
   Future <void> _modifyDate(DateTime v) async {
-    modifiedDate = v.millisecondsSinceEpoch.toString();
-
+    initialDate = v.millisecondsSinceEpoch.toString();
 
     String month;
     switch (v.month) {
@@ -211,7 +212,7 @@ class EditState extends State<EditScreen> {
                         modifiedRedable,
                         style: TextStyle(
                           // If switch is on display enabled
-                          color: (modifiedDate != null) ? Colors.black87 : Colors.black45,
+                          color: (initialDate != pInitial) ? Colors.black87 : Colors.black45,
                           fontSize: 30,
                           fontWeight: FontWeight.w400,
                         )
@@ -231,7 +232,7 @@ class EditState extends State<EditScreen> {
                 new RaisedButton(
                   child: new Text("SAVE"),
                   onPressed: (){
-                    if (_nameFieldKey.currentState.validate() && _valueFieldKey.currentState.validate()){
+                    if (_nameFieldKey.currentState.validate()){
                       Scaffold
                       .of(context)
                       .showSnackBar(
@@ -240,7 +241,7 @@ class EditState extends State<EditScreen> {
                           duration: new Duration(seconds: 4)
                         )
                       );
-                      _updateCounter(_controllerName.text.toString(), _controllerValue.text.toString());
+                      _updateCounter(_controllerName.text.toString());
                     }
                   }
                 ),
@@ -276,7 +277,10 @@ class EditState extends State<EditScreen> {
                                 FlatButton(
                                   child: Text("I\'m sure"),
                                   onPressed: () {
-                                    _updateCounter(pName, "0");
+                                    var now = DateTime.now();
+                                    var today = DateTime(now.year, now.month, now.day);
+                                    initialDate = today.millisecondsSinceEpoch.toString();
+                                    _updateCounter(pName);
                                     Navigator.of(context).pop();
                                   },
                                 ),

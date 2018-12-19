@@ -131,6 +131,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     setState(() {});
   }
 
+
+
   /// Algorithm to get chart data from the red flags in database.
   void _getDataList (int n, dynamic results, String initial,  final int minDayExtraPenalty, final double extraPenalty) {
 
@@ -203,6 +205,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   }
 
 
+
+
   /// Transfer user to Add Counter screen
   void _addCounter() async{
     Navigator.push(context, MaterialPageRoute(builder:
@@ -229,9 +233,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   // Delete this counter from the database
   void _deleteCounter(String name) async{
     counterDatabase.deleteCounter(db, name).then((v) async {
-      await flagsDatabase.getDb(name).then((dab) async{
-        await flagsDatabase.deleteDb(name);
-      });
+      await flagsDatabase.deleteDb(name);
 
       Fluttertoast.showToast(
         msg: "$name deleted!",
@@ -343,6 +345,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
 
   Future<void> _addRedFlagToDb (int i, DateTime dateTime) async{
+    assert (dateTime != null);
     var row = queryResult[i];
     String name = row['name'];
     String initial = row['initial'];
