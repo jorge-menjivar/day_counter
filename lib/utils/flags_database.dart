@@ -73,7 +73,6 @@ class FlagsDatabase {
     return path;
   }
 
-
   /// Renames the file name of the given database
   void renameDatabase(String id, String newId) async {
     assert (id != null && id != "");

@@ -1,15 +1,19 @@
 
-import 'edit_screen.dart';
-import 'add_counter_screen.dart';
+
 import 'dart:ui';
 
 import 'settings_screen.dart';
+import 'view_flags_screen.dart';
+import 'add_counter_screen.dart';
+import 'edit_screen.dart';
+import 'view_more.dart';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_view/pin_code_view.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'utils/algorithms.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -45,7 +49,9 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   HomeScreenState();
-
+  
+  Algorithms _algorithms = Algorithms();
+  
   var queryResult;
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
@@ -104,19 +110,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       db = res;
       queryResult = await counterDatabase.getQuery(db);
       tileCount = queryResult.length;
-      _refreshData();
-      this.setState(() => queryResult);
+      await _getData();
+      setState(() => queryResult);
     });
   }
 
-  /// Function to refresh the data from all the counters with the parameters set below
-  void _refreshData() {
-    // TODO edit parameters below from machine learning
-    _getData(5, 1.7);
-  }
 
   /// Gets the data to display on the chart for all counters.
-  void _getData(final int minDayPenalty, double extraPenalty) async {
+  Future<void> _getData() async {
     int size = queryResult.length;
     for (int i = 0; i < size; i++) {
       var row = queryResult[i];
@@ -124,7 +125,19 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       String initial = row['initial'];
       await flagsDatabase.getDb(name).then((res) async {
         await flagsDatabase.getQuery(res).then((queryR) async {
-          _getDataList(i, queryR, initial, minDayPenalty, extraPenalty);
+          
+          // Algorithm
+          var data = _algorithms.getDataList(queryR, initial);
+          
+          // If the data is not yet part of the list then initialize it
+          if (i >= dataLists.length){
+            dataLists.add(data); 
+          }
+          // Otherwise just set its value to the appropriate place in the list
+          else {
+            dataLists[i] = data;
+          }
+          
         });
       });
     }
@@ -133,77 +146,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
 
 
-  /// Algorithm to get chart data from the red flags in database.
-  void _getDataList (int n, dynamic results, String initial,  final int minDayExtraPenalty, final double extraPenalty) {
-
-    // The data we will later return.
-    List<ProgressByDate> data = new List<ProgressByDate>();
-
-    // The day the counter was started
-    DateTime date1 = DateTime.fromMillisecondsSinceEpoch(int.parse(initial));
-
-    // Starting the data with the initial day as our first point.
-    data.add(new ProgressByDate(day: 0, progress: 0, color: Colors.blue));
-
-    double progress = 0;
-    int days = 0;
-
-    DateTime date2;
-
-    final int size = results.length;
-    for (int i = 0; i < size; i++) {
-      double penalty = 0;
-
-      var row = results[i];
-
-      // Gettin the next flag date from the database
-      date2 = DateTime.fromMillisecondsSinceEpoch(int.parse(row['date']));
-
-      // The difference between the last flag and this flag.
-      int difference = date2.difference(date1).inDays;
-      days += difference;
-
-      // Adding the difference to the progress before penalizing.
-      progress += difference;
-
-      // Adding a point before the penalties so that it represents the loss
-      data.add(new ProgressByDate(day: days-1, progress: progress, color: Colors.red));
-
-      // If extra penalty should be applied
-      if (difference <= minDayExtraPenalty) {
-        penalty = (progress * .5) * (extraPenalty);
-      }
-
-      else {
-        penalty = (progress * .5);
-      }
-
-      // Adding penalties
-      progress -= penalty;
-
-      // Adding starting point for the following progress (The following blue line), after penalty
-      data.add(new ProgressByDate(day: days, progress: progress, color: Colors.blue));
-
-      date1 = date2;
-    }
-
-    date2 = DateTime.now();
-    int difference = date2.difference(date1).inDays;
-    days += difference;
-    progress += difference;
-
-    data.add(new ProgressByDate(day: days, progress: progress, color: Colors.blue));
-    
-    // If the data is not yet part of the list then initialize it
-    if (n >= dataLists.length){
-      dataLists.add(data); 
-    }
-    // Otherwise just set its value to the appropriate place in the list
-    else {
-      dataLists[n] = data;
-    }
-  }
-
+  
 
 
 
@@ -214,7 +157,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     ).then((v) async {
       queryResult = await counterDatabase.getQuery(db);
       tileCount = queryResult.length;
-      _refreshData();
+      _getData();
     });
   }
 
@@ -230,7 +173,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     });
   }
 
-  // Delete this counter from the database
+  /// Delete this counter from the database
   void _deleteCounter(String name) async{
     counterDatabase.deleteCounter(db, name).then((v) async {
       await flagsDatabase.deleteDb(name);
@@ -243,16 +186,21 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         backgroundColor: Colors.transparent,
         textColor: Colors.white,
       );
-
-      // Update Screen
-      queryResult = await counterDatabase.getQuery(db);
-      tileCount = queryResult.length;
-      this.setState(() => queryResult);
+      
+      _updateCounters();
     });
   }
+  
+  /// Update Counters
+  Future<void> _updateCounters() async {
+    queryResult = await counterDatabase.getQuery(db);
+    tileCount = queryResult.length;
+    await _getData();
+    setState(() => queryResult);
+  }
 
-  // The main method where the math to calculate if days should be added is done.
-  void _incrementCounter(String name, String valueString, String lastString) async{
+  /// Calculate if days should be added.
+  Future<void> _incrementCounter(String name, String valueString, String lastString) async{
 
     DateTime _last = DateTime.fromMillisecondsSinceEpoch(int.parse(lastString));
     int _counter = int.parse(valueString);
@@ -291,7 +239,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       // Updating screen
       var result = await counterDatabase.getQuery(db);
       queryResult = result;
-      _refreshData();
+      _getData();
     });
   }
 
@@ -302,8 +250,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         var row = queryResult[i];
         _incrementCounter(row['name'], row['value'], row['last']);
       }
-
-      _refreshData();
+      await _updateCounters();
+      await _getData();
+      setState(() {});
     }
 
     return 0;
@@ -343,6 +292,13 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     );
   }
 
+  void _showViewMore(int i, String name, String value, String initial, String last, var chart) async {
+    await Navigator.push(context, MaterialPageRoute(builder: 
+      (context) => MoreScreen(name: name, value: value, initial: initial, last: last)));
+    _updateCounters();
+  }
+
+
 
   Future<void> _addRedFlagToDb (int i, DateTime dateTime) async{
     assert (dateTime != null);
@@ -380,7 +336,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         await flagsDatabase.getFlagQuery(db, date).then((q) async {
           if (q.length == 0){
             await flagsDatabase.addToDb(db, date).then((v) {
-              _refreshData();
+              _getData();
             });
           }
 
@@ -411,6 +367,13 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     }
 
     return;
+  }
+  
+
+  /// Navigate to View Flags screen and update widgets once it pops
+  Future<void> _showFlags(String name) async{
+    await Navigator.push(context, MaterialPageRoute(builder: (context) => FlagsScreen(name: name,)));
+    _getData();
   }
 
 
@@ -448,6 +411,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       ),
       backgroundColor: Colors.white.withAlpha(230),
       bottomNavigationBar: BottomAppBar(
+        
         color: Colors.lightBlue,
         shape: new CircularNotchedRectangle(), 
         notchMargin: 4.0,
@@ -467,9 +431,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
               icon: Icon(Icons.settings),
               color: Colors.white,
               highlightColor: Colors.green,
-              onPressed:() {
-                }
-              ),
+              onPressed:() => Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen()))),
           ],
         ),
       ),
@@ -512,7 +474,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       textAlign: TextAlign.left,
                       style: _drawerFont,
                     ), 
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen())),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen()));
+                    },
                   ),
                   Divider(),
                   new ListTile(
@@ -536,7 +501,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       ),
 
       body: RefreshIndicator( // When the user drags to refresh all counters
-        child: _buildCounterTitles(),
+        child: _buildCounters(),
         onRefresh: () {
           return _updateAll();
         },
@@ -544,7 +509,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     );
   }
 
-  Widget _buildCounterTitles() {
+  Widget _buildCounters() {
     return ListView.builder(
       itemCount: tileCount,
 
@@ -552,15 +517,15 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       itemBuilder: (context, i){
         if (queryResult != null && queryResult.length> 0 && i < queryResult.length){
           var row = queryResult[i];
-          return _buildRow(i, row['name'], row['value'], row['initial'], row['last']);
+          return _buildCard(i, row['name'], row['value'], row['initial'], row['last']);
         }
         return null;
       }
     );
   }
 
-  Widget _buildRow(int i, String name, String value, String intial, String last) {
 
+  Widget _buildCard(int i, String name, String value, String initial, String last) {
     // In case flags have not been loaded yet
     var dataBackup;
     if (i >= dataLists.length) {
@@ -568,12 +533,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         new ProgressByDate(day: 0, progress: 0, color: Colors.blue),
       ];
     }
-    /*
-    var data = [
-      new ProgressByDate(day: 0, progress: 0, color: Colors.blue),
-      new ProgressByDate(day: 10, progress: 10, color: Colors.green),
-      new ProgressByDate(day: 11, progress: 8, color: Colors.purple),
-    ];*/
 
     // Defining the data that corresponds to what on the chart
     var series = [
@@ -594,177 +553,161 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
 
     // Dismissible so we can swipe it left to delete
-    return Dismissible(
-      // Icon 'delete' and red background
-      background: Container(
-        padding: EdgeInsets.all(16.0),
-        color: Colors.redAccent,
-        child: Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
-        alignment: Alignment.centerRight,
-      ),
-      // Each Dismissible must contain a Key. Keys allow Flutter to
-      // uniquely identify Widgets.
-      key: Key(name),
-      direction: DismissDirection.endToStart,
-      // We also need to provide a function that will tell our app
-      // what to do after an item has been swiped away.
-      onDismissed: (direction) {
-        // Remove the item from our data source.
-        _deleteCounter(name);
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.fromLTRB(30, 15, 30, 15),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
 
-        // Show a snackbar! This snackbar could also contain "Undo" actions.
-        Scaffold
-            .of(context)
-            .showSnackBar(SnackBar(content: Text("$name deleted")));
-      },
-      child: Card(
-        elevation: 4,
-        margin: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 20
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-
-            // Title of card
-            Stack(
-              children: <Widget>[ 
-                ListTile(
-                  contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-                  title: Text(
-                    value,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold
-                    ),
-                  ),
-                  subtitle: new Text(
-                    name,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18
-                    ),
+          // ----------------------------- Title of card --------------------------------
+          Stack(
+            children: <Widget>[ 
+              ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+                title: Text(
+                  value,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold
                   ),
                 ),
-                ListTile(
-                  contentPadding: const EdgeInsets.fromLTRB(0, 16, 4, 8),
-                  trailing: PopupMenuButton(
-                    icon: Icon(
-                      Icons.more_vert
-                    ),
-                    itemBuilder: (v) => <PopupMenuItem<String>>[
-                          new PopupMenuItem<String>(
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.flag,
-                                  color: Colors.red
-                                ),
-                                title: Text(
-                                  "View Red Flags"
-                                ),
-                              ),
-                              value: 'red'),
-                          new PopupMenuItem<String>(
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.edit,
-                                ),
-                                title: Text(
-                                  "Edit"
-                                ),
-                              ),
-                              value: 'edit'),
-                          new PopupMenuItem<String>(
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.delete_forever,
-                                  color: Colors.red
-                                ),
-                                title: Text(
-                                  "Delete"
-                                ),
-                              ),
-                              value: 'delete'),
-                        ],
-                    onSelected: (v) {
-                      switch (v) {
-                        case 'red': break;
-                        case 'edit': _editCounter(name, value, intial, last); break;
-                        case 'delete': _showDeleteDialog(name); break;
-                      }
-                    }),
-                )
-              ],
-            ),
-            
-
-            // Line Chart
-            Container(
-              color: Colors.black.withAlpha(15),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(14, 8, 8, 8),
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return new SizedBox(
-                      height: 150.0,
-                      width: constraints.maxWidth,
-                      child: chart,
-                    );
-                  }
-                )
-              ) 
-            ),
-
-            // Action buttons in the card
-            ButtonTheme.bar(
-              alignedDropdown: true,
-              child: ListTile(
-                leading: FlatButton(
-                  child: const Text('VIEW MORE'),
-                  onPressed: () { 
-                    //TODO create a full screen dialog that shows the counter details
-                  },
-                ),
-                trailing: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    IconButton(
-                      icon: Icon(
-                        Icons.flag,
-                        color: Colors.red
-                      ),
-                      iconSize: 30,
-                      onPressed: () {
-                        showDatePicker(
-                          initialDate: new DateTime.now(),
-                          firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
-                          lastDate: new DateTime.now().add(new Duration(days: 3000)),
-                          context: context,
-                        ).then((v) async => _addRedFlagToDb(i, v));
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.add_circle,
-                        color: Colors.blue
-                      ),
-                      iconSize: 35,
-                      onPressed: () => _incrementCounter(name, value, last)
-                    ),
-                  ]
+                subtitle: new Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18
+                  ),
                 ),
               ),
+              ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(0, 16, 4, 8),
+                trailing: PopupMenuButton(
+                  icon: Icon(
+                    Icons.more_vert
+                  ),
+                  itemBuilder: (v) => <PopupMenuItem<String>>[
+                        new PopupMenuItem<String>(
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.flag,
+                                color: Colors.red
+                              ),
+                              title: Text(
+                                "View Red Flags"
+                              ),
+                            ),
+                            value: 'red'),
+                        new PopupMenuItem<String>(
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.edit,
+                              ),
+                              title: Text(
+                                "Edit"
+                              ),
+                            ),
+                            value: 'edit'),
+                        new PopupMenuItem<String>(
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.delete_forever,
+                                color: Colors.red
+                              ),
+                              title: Text(
+                                "Delete"
+                              ),
+                            ),
+                            value: 'delete'),
+                      ],
+                  onSelected: (v) {
+                    switch (v) {
+                      case 'red': _showFlags(name); break;
+                      case 'edit': _editCounter(name, value, initial, last); break;
+                      case 'delete': _showDeleteDialog(name); break;
+                    }
+                  }),
+              )
+            ],
+          ),
+          
+          // ------------------------------ Line Chart ----------------------------------------------
+          Container(
+            color: Colors.black.withAlpha(15),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(14, 8, 8, 8),
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return new SizedBox(
+                    height: 120.0,
+                    width: constraints.maxWidth,
+                    child: chart,
+                  );
+                }
+              )
+            ) 
+          ),
+          
+          
+          //TODO
+          (name != " ") ? ListTile(
+              contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+              title: Text(
+                "Cheat Days will go here",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold
+                ),
+              ),
+            ) : null,
+
+          // --------------------------------- Action buttons in the card --------------------------
+          ButtonTheme.bar(
+            alignedDropdown: true,
+            child: ListTile(
+              leading: FlatButton(
+                child: const Text('VIEW MORE'),
+                onPressed: () { 
+                  _showViewMore(i, name, value, initial, last, chart);
+                },
+              ),
+              trailing: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  IconButton(
+                    icon: Icon(
+                      Icons.flag,
+                      color: Colors.red
+                    ),
+                    iconSize: 30,
+                    onPressed: () {
+                      showDatePicker(
+                        initialDate: new DateTime.now(),
+                        firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
+                        lastDate: new DateTime.now().add(new Duration(days: 3000)),
+                        context: context,
+                      ).then((v) =>  _addRedFlagToDb(i, v));
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.add_circle,
+                      color: Colors.blue
+                    ),
+                    iconSize: 35,
+                    onPressed: () => _incrementCounter(name, value, last)
+                  ),
+                ]
+              ),
             ),
-          ]
-        )
+          ),
+        ]
       )
     );
   }

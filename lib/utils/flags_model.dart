@@ -5,7 +5,6 @@ class Flags {
 
   String date;
 
-  bool starred;
   Flags({
     @required this.date,
   });

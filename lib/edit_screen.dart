@@ -86,6 +86,7 @@ class EditState extends State<EditScreen> {
 
   /// Save the changes to database and close screen
   void _updateCounter(String name) async{
+    //TODO make sure date cannot be after today
     await counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0 || pName == name) {
         var initial = DateTime.fromMillisecondsSinceEpoch(int.parse(initialDate));

@@ -8,7 +8,6 @@ class Counter {
 
   String name, value, initial, last;
 
-  bool starred;
   Counter({
     @required this.name,
     @required this.value,
