@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'view_flags_screen.dart';
 import 'edit_screen.dart';
+import 'utils/common_funcs.dart';
 
 
 // Utils
@@ -20,14 +21,8 @@ import 'utils/flags_database.dart';
 
 class MoreScreen extends StatefulWidget {
   final String name;
-  final String value;
-  final String initial;
-  final String last;
   MoreScreen({
-    @required this.name,
-    @required this.value,
-    @required this.initial,
-    @required this.last
+    @required this.name
   });
 
   @override
@@ -36,9 +31,9 @@ class MoreScreen extends StatefulWidget {
 
 class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   String pName;
-  String pValue;
-  String pInitial;
-  String pLast;
+  String pValue = "";
+  String pInitial = "";
+  String pLast = "";
   MoreState({
     @required this.pName,
   });
@@ -53,6 +48,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   
   Algorithms _algorithms = Algorithms();
+  CommonFunctions common = CommonFunctions();
   
   var dataList = List<ProgressByDate>();
   
@@ -67,6 +63,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   
   @override
   void dispose() {
+    db.close();
     super.dispose();
   }
   
@@ -91,7 +88,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
     });
   }
   
-  /// Update Counter
+  /// Updates all the values of the current counter
   Future<void> _updateCounter() async {
     queryResult = await counterDatabase.getCounterQuery(db, pName).then((v) {
       if(v.length == 0){
@@ -113,67 +110,12 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   Future<void> _getData() async {
     await flagsDatabase.getDb(pName).then((res) async {
       await flagsDatabase.getQuery(res).then((queryR) async {
-        
         // Algorithm
         dataList = _algorithms.getDataList(queryR, pInitial);
-        
       });
+      res.close();
     });
     setState(() {});
-  }
-  
-  
-  Future<void> _addRedFlagToDb (DateTime dateTime) async{
-    assert (dateTime != null);
-    
-    // The initial date of the counter
-    DateTime initDate = DateTime.fromMillisecondsSinceEpoch(int.parse(pInitial));
-
-    // The date passed from the date picker
-    String date = dateTime.millisecondsSinceEpoch.toString();
-
-    // Setting the millisecondsSinceEpoch to the beginning of the day of today.
-    var today = DateTime(
-      DateTime.now().year, DateTime.now().month, DateTime.now().day
-    );
-
-    // Setting the millisecondsSinceEpoch to the beginning of the day if the flag is for today.
-    if (DateTime.now().difference(dateTime).inDays == 0) {
-      var d = DateTime(
-        dateTime.year, dateTime.month, dateTime.day
-      );
-      date = d.millisecondsSinceEpoch.toString();
-    }
-
-    int initDif = today.difference(initDate).inDays;
-    int curDif = today.difference(dateTime).inDays;
-
-    // Making sure the flag date is after initial date and before today's date
-    if (curDif >= 0 && curDif < initDif) {
-
-      // Making sure flag does not already exists
-      await flagsDatabase.getDb(pName).then((db) async {
-        await flagsDatabase.getFlagQuery(db, date).then((q) async {
-          if (q.length == 0){
-            await flagsDatabase.addToDb(db, date).then((v) {
-              _getData();
-            });
-          }
-
-          else {
-            Fluttertoast.showToast(
-              msg: "Flag already exists",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.CENTER,
-              timeInSecForIos: 2,
-              backgroundColor: Colors.transparent,
-              textColor: Colors.white,
-            );
-          }
-        });
-      });
-    }
-    return;
   }
   
   /// Navigate to View Flags screen and update widgets once it pops
@@ -217,7 +159,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
               child: Text("I\'m sure"),
               onPressed: () {
                 Navigator.of(context).pop();
-                _deleteCounter(pName);
+                common.deleteCounter(db, pName);
                 Navigator.of(context).pop();
               },
             ),
@@ -227,75 +169,6 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
     );
   }
   
-  
-  
-  /// Delete this counter from the database
-  void _deleteCounter(String name) async{
-    counterDatabase.deleteCounter(db, name).then((v) async {
-      await flagsDatabase.deleteDb(name);
-
-      Fluttertoast.showToast(
-        msg: "$name deleted!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
-        timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
-        textColor: Colors.white,
-      );
-
-      // Update Screen
-      queryResult = await counterDatabase.getQuery(db);
-      tileCount = queryResult.length;
-      this.setState(() => queryResult);
-    });
-  }
-  
-  
-  
-  /// Calculate if days should be added.
-  Future<void> _incrementCounter() async{
-
-    DateTime _last = DateTime.fromMillisecondsSinceEpoch(int.parse(pLast));
-    int _counter = int.parse(pValue);
-    var _today = DateTime.now();
-
-    // The library DateTime automatically calculates the day difference for us.
-    int newDays = _today.difference(_last).inDays;
-    print(newDays);
-    if (newDays <= 0){
-      Fluttertoast.showToast(
-        msg: "Come back tomorrow",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
-        textColor: Colors.white,
-      );
-      return;
-    }
-    else {
-      _counter += newDays;
-      Fluttertoast.showToast(
-        msg: "$newDays added!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
-        textColor: Colors.white,
-      );
-    }
-
-    // Saving update to device
-    var todayEpoch = DateTime.now().millisecondsSinceEpoch;
-    await counterDatabase.updateCounter(db, pName, _counter.toString(), todayEpoch.toString()).then((r) async {
-
-      // Updating screen
-      var result = await counterDatabase.getQuery(db);
-      queryResult = result;
-      _getData();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     
@@ -456,7 +329,10 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
                           firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
                           lastDate: new DateTime.now().add(new Duration(days: 3000)),
                           context: context,
-                        ).then((v) async => _addRedFlagToDb(v));
+                        ).then((v) async {
+                          common.addRedFlagToDb(v, pName, pValue);
+                          _updateCounter();
+                        });
                       },
                     ),
                     IconButton(
@@ -465,7 +341,10 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
                         color: Colors.blue
                       ),
                       iconSize: 35,
-                      onPressed: () => _incrementCounter()
+                      onPressed: () async {
+                        await common.incrementCounter(db, pName, pValue, pLast);
+                        _updateCounter();
+                      }
                     ),
                   ]
                 ),

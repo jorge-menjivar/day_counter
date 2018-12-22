@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:pin_code_view/pin_code_view.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'utils/algorithms.dart';
+import 'utils/common_funcs.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -51,6 +52,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   HomeScreenState();
   
   Algorithms _algorithms = Algorithms();
+  CommonFunctions common = CommonFunctions();
   
   var queryResult;
   Database db;
@@ -77,7 +79,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   );
 
   int tileCount = 0;
-
+ 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 
@@ -125,7 +127,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       String initial = row['initial'];
       await flagsDatabase.getDb(name).then((res) async {
         await flagsDatabase.getQuery(res).then((queryR) async {
-          
           // Algorithm
           var data = _algorithms.getDataList(queryR, initial);
           
@@ -139,17 +140,12 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           }
           
         });
+        res.close();
       });
     }
     setState(() {});
   }
-
-
-
   
-
-
-
   /// Transfer user to Add Counter screen
   void _addCounter() async{
     Navigator.push(context, MaterialPageRoute(builder:
@@ -160,8 +156,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       _getData();
     });
   }
-
-
+  
   /// Transfer user to Edit Counter screen
   void _editCounter(String name, String value, String initial, String last) {
     Navigator.push(context, MaterialPageRoute(builder:
@@ -173,91 +168,33 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     });
   }
 
-  /// Delete this counter from the database
-  void _deleteCounter(String name) async{
-    counterDatabase.deleteCounter(db, name).then((v) async {
-      await flagsDatabase.deleteDb(name);
 
-      Fluttertoast.showToast(
-        msg: "$name deleted!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
-        timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
-        textColor: Colors.white,
-      );
-      
-      _updateCounters();
-    });
-  }
   
-  /// Update Counters
+  /// Updates the Counters so that they display current values
   Future<void> _updateCounters() async {
     queryResult = await counterDatabase.getQuery(db);
     tileCount = queryResult.length;
     await _getData();
     setState(() => queryResult);
   }
-
-  /// Calculate if days should be added.
-  Future<void> _incrementCounter(String name, String valueString, String lastString) async{
-
-    DateTime _last = DateTime.fromMillisecondsSinceEpoch(int.parse(lastString));
-    int _counter = int.parse(valueString);
-    var _today = DateTime.now();
-
-    // The library DateTime automatically calculates the day difference for us.
-    int newDays = _today.difference(_last).inDays;
-    print(newDays);
-    if (newDays <= 0){
-      Fluttertoast.showToast(
-        msg: "Come back tomorrow",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
-        textColor: Colors.white,
-      );
-      return;
-    }
-    else {
-      _counter += newDays;
-      Fluttertoast.showToast(
-        msg: "$newDays added!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
-        textColor: Colors.white,
-      );
-    }
-
-    // Saving update to device
-    var todayEpoch = DateTime.now().millisecondsSinceEpoch;
-    await counterDatabase.updateCounter(db, name, _counter.toString(), todayEpoch.toString()).then((r) async {
-
-      // Updating screen
-      var result = await counterDatabase.getQuery(db);
-      queryResult = result;
-      _getData();
-    });
-  }
-
-
-  Future<int> _updateAll () async {
+  
+  
+  
+  /// Tries to add days to all the counters and then displays their new values
+  Future<int> _incrementAll() async {
     if (queryResult != null) {
       for (int i = 0; i < queryResult.length; i++) {
         var row = queryResult[i];
-        _incrementCounter(row['name'], row['value'], row['last']);
+        common.incrementCounter(db, row['name'], row['value'], row['last']);
       }
       await _updateCounters();
       await _getData();
       setState(() {});
     }
-
     return 0;
   }
-
+  
+  
   void _showDeleteDialog(String name) {
     showDialog<void>(
       context: context,
@@ -282,7 +219,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
             FlatButton(
               child: Text("I\'m sure"),
               onPressed: () {
-                _deleteCounter(name);
+                common.deleteCounter(db, name);
+                _updateCounters();
                 Navigator.of(context).pop();
               },
             ),
@@ -291,85 +229,15 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       }
     );
   }
-
+  
+  
   void _showViewMore(int i, String name, String value, String initial, String last, var chart) async {
     await Navigator.push(context, MaterialPageRoute(builder: 
-      (context) => MoreScreen(name: name, value: value, initial: initial, last: last)));
+      (context) => MoreScreen(name: name)));
     _updateCounters();
   }
-
-
-
-  Future<void> _addRedFlagToDb (int i, DateTime dateTime) async{
-    assert (dateTime != null);
-    var row = queryResult[i];
-    String name = row['name'];
-    String initial = row['initial'];
-
-    // The initial date of the counter
-    DateTime initDate = DateTime.fromMillisecondsSinceEpoch(int.parse(initial));
-
-    // The date passed from the date picker
-    String date = dateTime.millisecondsSinceEpoch.toString();
-
-    // Setting the millisecondsSinceEpoch to the beginning of the day of today.
-    var today = DateTime(
-      DateTime.now().year, DateTime.now().month, DateTime.now().day
-    );
-
-    // Setting the millisecondsSinceEpoch to the beginning of the day if the flag is for today.
-    if (DateTime.now().difference(dateTime).inDays == 0) {
-      var d = DateTime(
-        dateTime.year, dateTime.month, dateTime.day
-      );
-      date = d.millisecondsSinceEpoch.toString();
-    }
-
-    int initDif = today.difference(initDate).inDays;
-    int curDif = today.difference(dateTime).inDays;
-
-    // Making sure the flag date is after initial date and before today's date
-    if (curDif >= 0 && curDif < initDif) {
-
-      // Making sure flag does not already exists
-      await flagsDatabase.getDb(name).then((db) async {
-        await flagsDatabase.getFlagQuery(db, date).then((q) async {
-          if (q.length == 0){
-            await flagsDatabase.addToDb(db, date).then((v) {
-              _getData();
-            });
-          }
-
-          else {
-            Fluttertoast.showToast(
-              msg: "Flag already exists",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.CENTER,
-              timeInSecForIos: 2,
-              backgroundColor: Colors.transparent,
-              textColor: Colors.white,
-            );
-          }
-        });
-      });
-    }
-
-    // Print toast if flag is invalid
-    else {
-      Fluttertoast.showToast(
-        msg: "Date is invalid",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
-        textColor: Colors.white,
-      );
-    }
-
-    return;
-  }
   
-
+  
   /// Navigate to View Flags screen and update widgets once it pops
   Future<void> _showFlags(String name) async{
     await Navigator.push(context, MaterialPageRoute(builder: (context) => FlagsScreen(name: name,)));
@@ -499,11 +367,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           ],
         ),
       ),
-
       body: RefreshIndicator( // When the user drags to refresh all counters
         child: _buildCounters(),
         onRefresh: () {
-          return _updateAll();
+          return _incrementAll();
         },
       ) 
     );
@@ -512,7 +379,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   Widget _buildCounters() {
     return ListView.builder(
       itemCount: tileCount,
-
       // Getting values from query of counters in database
       itemBuilder: (context, i){
         if (queryResult != null && queryResult.length> 0 && i < queryResult.length){
@@ -523,8 +389,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       }
     );
   }
-
-
+  
   Widget _buildCard(int i, String name, String value, String initial, String last) {
     // In case flags have not been loaded yet
     var dataBackup;
@@ -544,14 +409,13 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         data: (i < dataLists.length) ? dataLists[i] : dataBackup,
       ),
     ];
-
+    
     // The line chart used in the cards
     var chart = new charts.LineChart(
       series,
       animate: true,
     );
-
-
+    
     // Dismissible so we can swipe it left to delete
     return Card(
       elevation: 4,
@@ -559,7 +423,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-
           // ----------------------------- Title of card --------------------------------
           Stack(
             children: <Widget>[ 
@@ -692,7 +555,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                         firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
                         lastDate: new DateTime.now().add(new Duration(days: 3000)),
                         context: context,
-                      ).then((v) =>  _addRedFlagToDb(i, v));
+                      ).then((v) async {
+                        await common.addRedFlagToDb(v, name, initial);
+                        _getData();
+                      });
                     },
                   ),
                   IconButton(
@@ -701,7 +567,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       color: Colors.blue
                     ),
                     iconSize: 35,
-                    onPressed: () => _incrementCounter(name, value, last)
+                    onPressed: () async {
+                      await common.incrementCounter(db, name, value, last);
+                      _updateCounters();
+                    }
                   ),
                 ]
               ),
@@ -718,7 +587,7 @@ class ProgressByDate {
   int day;
   double progress;
   charts.Color color;
-
+  
   ProgressByDate({this.day, this.progress, Color color}) {
     this.color = new charts.Color(r: color.red, g: color.green, b: color.blue, a: color.alpha);
   }

@@ -11,7 +11,7 @@ import 'flags_model.dart';
 class FlagsDatabase {
 
   /// Initizalize this database and return it
-  Future getDb(String id) async {
+  Future<Database> getDb(String id) async {
     assert (id != null && id != "");
     // Get a location using path_provider
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
@@ -49,7 +49,6 @@ class FlagsDatabase {
   /// Get query of all the rows in database
   Future getQuery(Database db) async {
     var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} ASC');
-    if (query.length == 0)print('No Flags');
     return query;
   }
 
@@ -73,8 +72,9 @@ class FlagsDatabase {
     return path;
   }
 
+
   /// Renames the file name of the given database
-  void renameDatabase(String id, String newId) async {
+  Future<void> renameDatabase(String id, String newId) async {
     assert (id != null && id != "");
     assert (newId != null && newId != "");
 

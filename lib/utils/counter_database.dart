@@ -11,7 +11,7 @@ import 'counter_model.dart';
 class CounterDatabase {
 
   /// Initizalize this database and return it
-  Future getDb() async {
+  Future<Database> getDb() async {
     // Get a location using path_provider
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'counters');

@@ -42,7 +42,7 @@ SPEC CHECKSUMS:
   fluttertoast: 0a20dcbbb8ecfd1a61b6285651ff2d5989d033fb
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   path_provider: 09407919825bfe3c2deae39453b7a5b44f467873
-  sqflite: d1612813fa7db7c667bed9f1d1b508deffc56999
+  sqflite: 801b6b0983f722fa29baf00d1476e4556ada6de4
 
 PODFILE CHECKSUM: aff02bfeed411c636180d6812254b2daeea14d09
 
