@@ -1,6 +1,7 @@
 
 
 import 'dart:ui';
+import 'dart:io';
 
 import 'settings_screen.dart';
 import 'view_flags_screen.dart';
@@ -11,6 +12,7 @@ import 'view_more.dart';
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:pin_code_view/pin_code_view.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'utils/algorithms.dart';
@@ -35,6 +37,7 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.green,
         canvasColor: Colors.white,
+        accentColor: Colors.green,
       ),
       home: new HomeScreen(),
     );
@@ -65,18 +68,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   String pin;
   final storage = new FlutterSecureStorage();
 
-  final TextStyle _biggerFont = const TextStyle(
-    fontSize: 24.0,
-    color: Colors.black87
-  );
-  final TextStyle _drawerFont = const TextStyle(
-    fontSize: 17.0,
-    color: Colors.black87
-    );
-  final TextStyle _valueStyle = const TextStyle(
-    fontSize: 36.0,
-    color: Colors.blue,
-  );
+  TextStyle _drawerFont;
 
   int tileCount = 0;
  
@@ -95,7 +87,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     super.dispose();
   }
   
-
   /// Load Pin from secure storage
   void _loadPin() async{
     pin = await storage.read(key: "pin");
@@ -103,9 +94,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       secured = true;
     }
   }
-
-
-
+  
   /// Initialize database
   void _initDb() async {
     counterDatabase.getDb().then((res) async{
@@ -116,8 +105,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       setState(() => queryResult);
     });
   }
-
-
+  
   /// Gets the data to display on the chart for all counters.
   Future<void> _getData() async {
     int size = queryResult.length;
@@ -151,9 +139,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     Navigator.push(context, MaterialPageRoute(builder:
       (context) => AddCounterScreen())
     ).then((v) async {
-      queryResult = await counterDatabase.getQuery(db);
-      tileCount = queryResult.length;
-      _getData();
+      await _updateCounters();
     });
   }
   
@@ -162,13 +148,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     Navigator.push(context, MaterialPageRoute(builder:
       (context) => EditScreen(name: name, value: value, initial: initial, last: last))
     ).then((v) async {
-      queryResult = await counterDatabase.getQuery(db);
-      tileCount = queryResult.length;
-      this.setState(() => queryResult);
+      await _updateCounters();
     });
   }
-
-
   
   /// Updates the Counters so that they display current values
   Future<void> _updateCounters() async {
@@ -177,8 +159,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     await _getData();
     setState(() => queryResult);
   }
-  
-  
   
   /// Tries to add days to all the counters and then displays their new values
   Future<int> _incrementAll() async {
@@ -195,58 +175,105 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   }
   
   
-  void _showDeleteDialog(String name) {
-    showDialog<void>(
+  void _showBottomSheet() {
+    showModalBottomSheet<void>(
       context: context,
-      barrierDismissible: true, // user can type outside box to dismiss
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Are you sure?'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Do you really want to delete \'$name\' ?'),
-              ],
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            new Container(
+              child: new Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  new ListTile(
+                    title: Text(
+                      'Day Counter',
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        letterSpacing: .8,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white
+                      )
+                    ),
+                  )
+                ]
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.teal,
+                    Colors.green
+                  ]
+                )
+              ),
             ),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+            new Container(
+              color: Colors.white,
+              child: new Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  new ListTile(
+                    leading: new Icon(
+                      Icons.settings,
+                      color: Colors.black.withOpacity(.75)
+                    ),
+                    title: Text(
+                      'Settings',
+                      textAlign: TextAlign.left,
+                      style: _drawerFont,
+                    ), 
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen()));
+                    },
+                  ),
+                  new ListTile(
+                    leading: new Icon(
+                      Icons.folder,
+                      color:Colors.black.withOpacity(.75)
+                    ),
+                    title: Text(
+                      'Terms of Use and Privacy',
+                      textAlign: TextAlign.left,
+                      style: _drawerFont,
+                    ), 
+                    // TODO go to privacy
+                    //onTap: () => Navigator.pop(context);,
+                  ),
+                ]
+              ),
             ),
-            FlatButton(
-              child: Text("I\'m sure"),
-              onPressed: () {
-                common.deleteCounter(db, name);
-                _updateCounters();
-                Navigator.of(context).pop();
-              },
-            ),
-          ]
+          ],
         );
-      }
-    );
+    });
   }
   
-  
+  /// Transfers user to the ViewMore Ssreen
   void _showViewMore(int i, String name, String value, String initial, String last, var chart) async {
     await Navigator.push(context, MaterialPageRoute(builder: 
       (context) => MoreScreen(name: name)));
     _updateCounters();
   }
   
-  
   /// Navigate to View Flags screen and update widgets once it pops
   Future<void> _showFlags(String name) async{
     await Navigator.push(context, MaterialPageRoute(builder: (context) => FlagsScreen(name: name,)));
     _getData();
   }
-
-
+  
   @override
   Widget build(BuildContext context) {
+    _drawerFont = TextStyle(
+      fontSize: 15.0,
+      letterSpacing: .8,
+      fontWeight: FontWeight.w600,
+      color: Colors.black.withOpacity(.75)
+    );
+    
     if (secured) {
       return Scaffold(
         body: PinCode(
@@ -258,6 +285,12 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           subTitle: Text(
             "Welcome back",
             style: TextStyle(color: Colors.white),
+          ),
+          keyTextStyle: TextStyle(
+            fontSize: 30,
+            letterSpacing: 1,
+            fontWeight: FontWeight.w600,
+            color: Colors.white
           ),
           obscurePin: false,
           codeLength: 4,
@@ -272,44 +305,59 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     }
     return Scaffold(
       key: _scaffoldKey,
-      appBar: new AppBar(
-        automaticallyImplyLeading: false,
-        title: new Text("Day Counter", textAlign: TextAlign.center,),
-        elevation: 4.0,
-      ),
-      backgroundColor: Colors.white.withAlpha(230),
+      backgroundColor: (Platform.isAndroid) ? Colors.white.withAlpha(230) : Colors.white.withAlpha(210),
       bottomNavigationBar: BottomAppBar(
-        
-        color: Colors.lightBlue,
-        shape: new CircularNotchedRectangle(), 
-        notchMargin: 4.0,
+        color: Colors.white,
         child: new Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             IconButton(
+              color: Colors.black.withOpacity(.75),
+              tooltip: 'Open drawer',
               icon: Icon(Icons.menu),
-              color: Colors.white,
-              highlightColor: Colors.green,
               onPressed: () {
-                _scaffoldKey.currentState.openDrawer();
+                _showBottomSheet();
               },
             ),
             IconButton(
-              icon: Icon(Icons.settings),
-              color: Colors.white,
-              highlightColor: Colors.green,
-              onPressed:() => Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen()))),
+              color: Colors.black.withOpacity(.75),
+              tooltip: 'Increment all counters',
+              icon: Icon(Icons.update),
+              onPressed:() {
+                final snackbar = SnackBar(
+                  content: Text(
+                    'Trying to increment all counters'
+                  ),
+                  duration: Duration(
+                    seconds: 2
+                  ),
+                );
+                _scaffoldKey.currentState.showSnackBar(snackbar);
+                _incrementAll();
+              },
+            )
           ],
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Add More Days',
-        child: new Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        elevation: (Platform.isAndroid) ? 4 : 0,
+        tooltip: 'Add new Counter to the screen',
+        icon: new Icon(
+          Icons.add,
+        ),
         onPressed: _addCounter,
+        label: Text(
+          "Add counter",
+          style: TextStyle(
+            fontSize: 16.0,
+            letterSpacing: .8,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
-      drawer: new Drawer(
+      /**drawer:     new Drawer(
         child: ListView(
           // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
@@ -325,7 +373,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                   ),
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.green
+                  image: DecorationImage(
+                    image: NetworkImage(
+                    "https://images.pexels.com/photos/396547/pexels-photo-396547.jpeg?auto=compress&cs=tinysrgb&h=350"
+                    ),
+                  )
                 ),
               ),
             ),
@@ -366,13 +418,48 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
             ),
           ],
         ),
-      ),
-      body: RefreshIndicator( // When the user drags to refresh all counters
+      ),**/
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverAppBar(
+              elevation: (Platform.isAndroid) ? 4 : 0,
+              expandedHeight: 300,
+              flexibleSpace: FlexibleSpaceBar(
+                collapseMode: CollapseMode.parallax,
+                centerTitle: true,
+                title: Text(
+                  "Day Counter",
+                  style: TextStyle(
+                    fontSize: 25,
+                    letterSpacing: .8,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white
+                  ),
+                ),
+                background: Image.network(
+                  "https://storage.googleapis.com/prospectusoft.com/images/cover.jpg",
+                  fit: BoxFit.cover,
+                )
+              ),
+            ),
+          ];
+        },
+        body: RefreshIndicator( // When the user drags to refresh all counters
         child: _buildCounters(),
         onRefresh: () {
+          final snackbar = SnackBar(
+            content: Text(
+              'Trying to increment all counters'
+            ),
+            duration: Duration(
+              seconds: 2
+            ),
+          );
+          _scaffoldKey.currentState.showSnackBar(snackbar);
           return _incrementAll();
-        },
-      ) 
+        }),
+      )
     );
   }
 
@@ -416,9 +503,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       animate: true,
     );
     
-    // Dismissible so we can swipe it left to delete
     return Card(
-      elevation: 4,
+      color: (Platform.isAndroid) ? Colors.white : Colors.white,
+      elevation: (Platform.isAndroid) ? 1 : 0,
       margin: const EdgeInsets.fromLTRB(30, 15, 30, 15),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -432,26 +519,26 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                   value,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold
-                  ),
+                    fontSize: 34.0,
+                    letterSpacing: .8,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue
+                  )
                 ),
                 subtitle: new Text(
                   name,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18
-                  ),
+                    fontSize: 18.0,
+                    letterSpacing: .8,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black.withOpacity(.75)
+                  )
                 ),
               ),
               ListTile(
                 contentPadding: const EdgeInsets.fromLTRB(0, 16, 4, 8),
                 trailing: PopupMenuButton(
-                  icon: Icon(
-                    Icons.more_vert
-                  ),
                   itemBuilder: (v) => <PopupMenuItem<String>>[
                         new PopupMenuItem<String>(
                             child: ListTile(
@@ -490,7 +577,13 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                     switch (v) {
                       case 'red': _showFlags(name); break;
                       case 'edit': _editCounter(name, value, initial, last); break;
-                      case 'delete': _showDeleteDialog(name); break;
+                      case 'delete': {
+                        common.showDeleteDialog(context, db, name).then((v) {
+                          if (v)
+                            _updateCounters(); 
+                        });
+                        break;
+                      }
                     }
                   }),
               )
@@ -499,7 +592,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           
           // ------------------------------ Line Chart ----------------------------------------------
           Container(
-            color: Colors.black.withAlpha(15),
+            color: Colors.black.withAlpha(5),
             child: Padding(
               padding: EdgeInsets.fromLTRB(14, 8, 8, 8),
               child: LayoutBuilder(
@@ -514,9 +607,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
             ) 
           ),
           
-          
           //TODO
-          (name != " ") ? ListTile(
+          (name == " ") ? ListTile(
               contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
               title: Text(
                 "Cheat Days will go here",
@@ -527,15 +619,38 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                   fontWeight: FontWeight.bold
                 ),
               ),
-            ) : null,
-
+            ) : SizedBox(),
+            
           // --------------------------------- Action buttons in the card --------------------------
           ButtonTheme.bar(
             alignedDropdown: true,
             child: ListTile(
-              leading: FlatButton(
-                child: const Text('VIEW MORE'),
+              leading: (Platform.isAndroid)
+              ? FlatButton(
+                child: const Text(
+                  'VIEW MORE',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    letterSpacing: 1,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green
+                  )
+                ),
                 onPressed: () { 
+                  _showViewMore(i, name, value, initial, last, chart);
+                },
+              )
+              : CupertinoButton (
+                child: const Text(
+                  'VIEW MORE',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    letterSpacing: 1,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green
+                  )
+                ),
+                onPressed: () {
                   _showViewMore(i, name, value, initial, last, chart);
                 },
               ),
@@ -545,29 +660,49 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                 children: <Widget>[
                   IconButton(
                     icon: Icon(
-                      Icons.flag,
+                      Icons.outlined_flag,
                       color: Colors.red
                     ),
                     iconSize: 30,
                     onPressed: () {
+                      (value != "0") ?
                       showDatePicker(
                         initialDate: new DateTime.now(),
-                        firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
-                        lastDate: new DateTime.now().add(new Duration(days: 3000)),
+                        firstDate: new DateTime.fromMillisecondsSinceEpoch(int.parse(initial)).add(new Duration(days: 1)),
+                        lastDate: new DateTime.now(),
                         context: context,
                       ).then((v) async {
-                        await common.addRedFlagToDb(v, name, initial);
-                        _getData();
-                      });
+                        if (v != null) {
+                           await common.addRedFlagToDb(v, name, initial);
+                          _getData();
+                        }
+                      }) : 
+                      Fluttertoast.showToast(
+                        msg: "Get out of bed when you are ready",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.CENTER,
+                        timeInSecForIos: 2,
+                        backgroundColor: Colors.transparent,
+                        textColor: Colors.white,
+                      );
                     },
                   ),
                   IconButton(
                     icon: Icon(
-                      Icons.add_circle,
+                      Icons.add_circle_outline,
                       color: Colors.blue
                     ),
-                    iconSize: 35,
+                    iconSize: 30,
                     onPressed: () async {
+                      final snackbar = SnackBar(
+                        content: Text(
+                          'Trying to increment $name'
+                        ),
+                        duration: Duration(
+                          seconds: 2
+                        ),
+                      );
+                      _scaffoldKey.currentState.showSnackBar(snackbar);
                       await common.incrementCounter(db, name, value, last);
                       _updateCounters();
                     }

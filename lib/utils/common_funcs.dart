@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:io';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:pin_code_view/pin_code_view.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'algorithms.dart';
+import 'package:flutter/cupertino.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -124,7 +126,7 @@ class CommonFunctions {
   
   
   /// Delete this counter[name] from the database
-  void deleteCounter(Database db, String name) async{
+  Future<void> deleteCounter(Database db, String name) async{
     counterDatabase.deleteCounter(db, name).then((v) async {
       await flagsDatabase.deleteDb(name);
       Fluttertoast.showToast(
@@ -136,6 +138,157 @@ class CommonFunctions {
         textColor: Colors.white,
       );
     });
+  }
+  
+  /// Delete the given[name] flag database
+  Future<void> deleteFlagsDatabase(String name) async{
+    await flagsDatabase.deleteDb(name);
+  }
+  
+  
+  /// Shows the an alert asking the user if delete should really be done
+  Future<bool> showDeleteDialog(BuildContext context, Database db, String name) async{
+    
+    bool choice = false;
+    
+    // Await for the dialog to be dismissed before returning
+    (Platform.isAndroid)
+    ? await showDialog<bool>(
+      context: context,
+      barrierDismissible: true, // user can type outside box to dismiss
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Are you sure?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Do you really want to delete $name?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text("I\'m sure"),
+              onPressed: () {
+                deleteCounter(db, name);
+                Navigator.of(context).pop();
+                choice = true;
+              },
+            ),
+          ]
+        );
+      }
+    )
+    : await showCupertinoDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text('Are you sure?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Do you really want to delete $name?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text("I\'m sure"),
+              onPressed: () {
+                deleteCounter(db, name);
+                Navigator.of(context).pop();
+                choice = true;
+              },
+            ),
+          ]
+        );
+      }
+    );
+    return choice;
+  }
+  
+  
+  /// Shows the an alert asking the user if restart should really be done
+  Future<bool> showRestartDialog(BuildContext context, Database db, String name) async{
+    
+    bool choice = false;
+    
+    // Await for the dialog to be dismissed before returning
+    (Platform.isAndroid)
+    ? await showDialog<bool>(
+      context: context,
+      barrierDismissible: true, // user can type outside box to dismiss
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Are you sure?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Do you really want to restart $name?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text("I\'m sure"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                choice = true;
+              },
+            ),
+          ]
+        );
+      }
+    )
+    : await showCupertinoDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text('Are you sure?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Do you really want to restart $name?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text("I\'m sure"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                choice = true;
+              },
+            ),
+          ]
+        );
+      }
+    );
+    return choice;
   }
   
 }

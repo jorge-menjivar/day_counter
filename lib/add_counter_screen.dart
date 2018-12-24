@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
@@ -129,12 +131,22 @@ class AddCounterState extends State<AddCounterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: new AppBar(
-        title: new Text("New Counter"),
-        elevation: 4.0,
+        title: new Text(
+          "New Counter",
+          style: TextStyle(
+            letterSpacing: .7,
+            fontWeight: FontWeight.w600,
+            color: Colors.white
+          ),
+        ),
+        elevation: (Platform.isAndroid) ? 4 : 0,
       ),
-      body: new Builder(
-        builder: (BuildContext context) {
-          return Container(
+      // Surrounded in ListView so that if it overflows while in landscape mode then the user can scroll
+      body: ListView(
+        // Physics to prevent scrolling when not needed
+        physics: ClampingScrollPhysics(),
+        children: <Widget>[
+          Container(
             padding: const EdgeInsets.all(16.0),
             child: new Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -149,6 +161,7 @@ class AddCounterState extends State<AddCounterScreen> {
                   autovalidate: true,
                   decoration: new InputDecoration(
                     labelText: "Counter Name",
+                    border: const OutlineInputBorder()
                   ),
                   validator: (text) {
                     if (_firstTry == false && text.length < 1)
@@ -185,10 +198,14 @@ class AddCounterState extends State<AddCounterScreen> {
                   ),
                   onTap: () => showDatePicker(
                     initialDate: new DateTime.now(),
-                    firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
-                    lastDate: new DateTime.now().add(new Duration(days: 3000)),
+                    firstDate: new DateTime.now().subtract(new Duration(days: 5000)),
+                    lastDate: new DateTime.now(),
                     context: context,
-                  ).then((v) async => await _modifyDate(v))
+                  ).then((v) async {
+                    if (v != null){
+                      await _modifyDate(v);
+                    }
+                  })
                 ),
                 new Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -198,8 +215,28 @@ class AddCounterState extends State<AddCounterScreen> {
                 new SizedBox(
                   height: 48.0,
                 ),
-                new RaisedButton(
+                (Platform.isAndroid)
+                ? new RaisedButton(
+                  child: new Text(
+                    "ADD COUNTER",
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white
+                    )
+                  ),
+                  color: Colors.green,
+                  onPressed: (){
+                    _firstTry = false;
+                    if (_nameFieldKey.currentState.validate()){
+                      _createCounter(_controllerName.text.toString());
+                    }
+                  }
+                )
+                : CupertinoButton(
                   child: new Text("ADD COUNTER"),
+                  color: Colors.green,
                   onPressed: (){
                     _firstTry = false;
                     if (_nameFieldKey.currentState.validate()){
@@ -209,9 +246,9 @@ class AddCounterState extends State<AddCounterScreen> {
                 ),
               ],
             )
-          );
-        },
-      )
+          )
+        ],
+      ),
     );
   }
 }

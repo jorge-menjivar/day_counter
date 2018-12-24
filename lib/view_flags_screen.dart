@@ -1,9 +1,11 @@
 import 'dart:ui';
+import 'dart:io';
 
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -79,8 +81,16 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
     return Scaffold(
       appBar: new AppBar(
         key: _scaffoldKey,
-        title: new Text("Flags for counter '$pName'", textAlign: TextAlign.center),
-        elevation: 4.0,
+        title: new Text(
+          "Flags in $pName",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            letterSpacing: .7,
+            fontWeight: FontWeight.w600,
+            color: Colors.white
+          ),
+        ),
+        elevation: (Platform.isAndroid) ? 4 : 0,
       ),
       body: _buildCounterTitles(),
         

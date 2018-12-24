@@ -1,9 +1,9 @@
 import 'dart:ui';
+import 'dart:io';
 
 import 'view_flags_screen.dart';
 import 'edit_screen.dart';
 import 'utils/common_funcs.dart';
-
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
@@ -12,19 +12,19 @@ import 'utils/algorithms.dart';
 import 'package:day_counter/main.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'utils/counter_database.dart';
-
+import 'package:flutter/cupertino.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
 import 'utils/flags_database.dart';
 
-
 class MoreScreen extends StatefulWidget {
+  
   final String name;
   MoreScreen({
     @required this.name
   });
-
+  
   @override
   createState() => MoreState(pName: name);
 }
@@ -52,9 +52,6 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   
   var dataList = List<ProgressByDate>();
   
-  
-
-
   @override
   void initState(){
     super.initState();
@@ -63,7 +60,6 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   
   @override
   void dispose() {
-    db.close();
     super.dispose();
   }
   
@@ -108,12 +104,12 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
 
   /// Gets Chart Data
   Future<void> _getData() async {
-    await flagsDatabase.getDb(pName).then((res) async {
-      await flagsDatabase.getQuery(res).then((queryR) async {
+    await flagsDatabase.getDb(pName).then((fDB) async {
+      await flagsDatabase.getQuery(fDB).then((queryR) async {
         // Algorithm
         dataList = _algorithms.getDataList(queryR, pInitial);
       });
-      res.close();
+      fDB.close();
     });
     setState(() {});
   }
@@ -132,7 +128,6 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
       _updateCounter();
     });
   }
-  
   
   void _showDeleteDialog() {
     showDialog<void>(
@@ -192,7 +187,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
     ];
 
     // The line chart used in the cards
-    var chart = new charts.LineChart(
+    var chart = charts.LineChart(
       series,
       animate: true,
     );
@@ -201,157 +196,203 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
     return Scaffold(
       appBar: new AppBar(
         key: _scaffoldKey,
-        title: new Text("$pName", textAlign: TextAlign.center),
-        elevation: 4.0,
+        title: new Text(
+          "$pName",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            letterSpacing: .7,
+            fontWeight: FontWeight.w600,
+            color: Colors.white
+          ),
+        ),
+        elevation: (Platform.isAndroid) ? 4 : 0,
         actions: <Widget>[
           PopupMenuButton(
-                  icon: Icon(
-                    Icons.more_vert
+            itemBuilder: (v) => <PopupMenuItem<String>>[
+              new PopupMenuItem<String>(
+                child: ListTile(
+                  leading: Icon(
+                    Icons.flag,
+                    color: Colors.red
                   ),
-                  itemBuilder: (v) => <PopupMenuItem<String>>[
-                    new PopupMenuItem<String>(
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.flag,
-                          color: Colors.red
-                        ),
-                        title: Text(
-                          "View Red Flags"
-                        ),
-                      ),
-                      value: 'red'),
-                    new PopupMenuItem<String>(
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.edit,
-                        ),
-                        title: Text(
-                          "Edit"
-                        ),
-                      ),
-                      value: 'edit'),
-                    new PopupMenuItem<String>(
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.delete_forever,
-                          color: Colors.red
-                        ),
-                        title: Text(
-                          "Delete"
-                        ),
-                      ),
-                      value: 'delete'),
-                  ],
-              onSelected: (v) {
-                switch (v) {
-                  case 'red': _showFlags(); break;
-                  case 'edit': _editCounter(); break;
-                  case 'delete': _showDeleteDialog(); break;
-                }
-              }),
+                  title: Text(
+                    "View Red Flags"
+                  ),
+                ),
+                value: 'red'),
+              new PopupMenuItem<String>(
+                child: ListTile(
+                  leading: Icon(
+                    Icons.edit,
+                  ),
+                  title: Text(
+                    "Edit"
+                  ),
+                ),
+                value: 'edit'),
+              new PopupMenuItem<String>(
+                child: ListTile(
+                  leading: Icon(
+                    Icons.delete_forever,
+                    color: Colors.red
+                  ),
+                  title: Text(
+                    "Delete"
+                  ),
+                ),
+                value: 'delete'),
+            ],
+            onSelected: (v) {
+              switch (v) {
+                case 'red': _showFlags(); break;
+                case 'edit': _editCounter(); break;
+                case 'delete': _showDeleteDialog(); break;
+              }
+            }
+          ),
         ],
       ),
-      body: Container(
-        padding: EdgeInsets.all(16),
-        child: Column(
+      
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        child: new Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            // ------------------------------------------ Title of Card -------------------------------
-            ListTile(
-              contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-              title: Text(
-                pValue,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold
-                ),
+            IconButton(
+              icon: Icon(
+                Icons.outlined_flag,
+                color: Colors.red
               ),
-              subtitle: new Text(
-                pName,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18
-                ),
-              ),
-            ),
-            
-            
-            // --------------------------------------Line Chart---------------------------------------------
-            Container(
-              color: Colors.black.withAlpha(15),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(14, 8, 8, 8),
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return new SizedBox(
-                      height: 300.0,
-                      width: constraints.maxWidth,
-                      child: chart,
-                    );
+              iconSize: 30,
+              onPressed: () {
+                (pValue != "0") ?
+                showDatePicker(
+                  initialDate: new DateTime.now(),
+                  firstDate: new DateTime.fromMillisecondsSinceEpoch(int.parse(pInitial)).add(new Duration(days: 1)),
+                  lastDate: new DateTime.now(),
+                  context: context,
+                ).then((v) async {
+                  if (v != null) {
+                    _updateCounter();
+                    _getData();
                   }
-                )
-              ) 
+                }) : 
+                Fluttertoast.showToast(
+                  msg: "Get out of bed when you are ready",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.CENTER,
+                  timeInSecForIos: 2,
+                  backgroundColor: Colors.transparent,
+                  textColor: Colors.white,
+                );
+              },
             ),
-            
-            //TODO
-            (pName != " ") ? ListTile(
-              contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-              title: Text(
-                "Cheat Days will go here",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold
-                ),
+            IconButton(
+              icon: Icon(
+                Icons.add_circle_outline,
+                color: Colors.blue
               ),
-            ) : null,
-            
-            // --------------------------------- Action buttons in the card --------------------------
-            ButtonTheme.bar(
-              alignedDropdown: true,
-              child: ListTile(
-                trailing: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    IconButton(
-                      icon: Icon(
-                        Icons.flag,
-                        color: Colors.red
-                      ),
-                      iconSize: 30,
-                      onPressed: () {
-                        showDatePicker(
-                          initialDate: new DateTime.now(),
-                          firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
-                          lastDate: new DateTime.now().add(new Duration(days: 3000)),
-                          context: context,
-                        ).then((v) async {
-                          common.addRedFlagToDb(v, pName, pValue);
-                          _updateCounter();
-                        });
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.add_circle,
-                        color: Colors.blue
-                      ),
-                      iconSize: 35,
-                      onPressed: () async {
-                        await common.incrementCounter(db, pName, pValue, pLast);
-                        _updateCounter();
-                      }
-                    ),
-                  ]
-                ),
-              ),
+              iconSize: 30,
+              onPressed: () async {
+                await common.incrementCounter(db, pName, pValue, pLast);
+                _updateCounter();
+              }
             ),
           ],
         ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButton: FloatingActionButton(
+        elevation: (Platform.isAndroid) ? 4 : 0,
+        tooltip: 'Edit this counter',
+        child: new Icon(
+          Icons.edit,
+        ),
+        onPressed: _editCounter,
+        
+      ),
+      
+      // Surrounded in ListView so that if it overflows while in landscape mode then the user can scroll
+      body: ListView(
+        // Physics to prevent scrolling when not needed
+        physics: ClampingScrollPhysics(),
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: <Widget>[
+                // ------------------------------------------ Title of Card -------------------------------
+                ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+                  title: Text(
+                    pValue,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 34.0,
+                      letterSpacing: .8,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue
+                    )
+                  ),
+                  subtitle: new Text(
+                    pName,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      letterSpacing: .8,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black.withOpacity(.75)
+                    )
+                  ),
+                ),
+                
+                
+                // --------------------------------------Line Chart---------------------------------------------
+                Container(
+                  color: Colors.black.withAlpha(5),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(14, 8, 8, 8),
+                    child: LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        return new SizedBox(
+                          height: 300.0,
+                          width: constraints.maxWidth,
+                          // In a ListView so that user can scroll left-right through the chart
+                          child: ListView(
+                            physics: ClampingScrollPhysics(),
+                            scrollDirection: Axis.horizontal,
+                            children: <Widget>[
+                              SizedBox(
+                                height: 300.0,
+                                width: 900.0,
+                                child: chart,
+                              )
+                            ],
+                          ),
+                        );
+                      }
+                    )
+                  ) 
+                ),
+                
+                //TODO
+                (pName == " ") ? ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+                  title: Text(
+                    "Cheat Days will go here",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ) : SizedBox(),
+              ],
+            ),
+          )
+        ],
       )
     );
   }

@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'utils/common_funcs.dart';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
@@ -42,8 +45,9 @@ class EditState extends State<EditScreen> {
 
   String initialDate;
   String modifiedRedable;
-
-
+  
+  CommonFunctions common = CommonFunctions();
+  
   @override
   void initState(){
     super.initState();
@@ -83,10 +87,9 @@ class EditState extends State<EditScreen> {
       this.setState(() => queryResult = result);
     });
   }
-
+  
   /// Save the changes to database and close screen
   void _updateCounter(String name) async{
-    //TODO make sure date cannot be after today
     await counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0 || pName == name) {
         var initial = DateTime.fromMillisecondsSinceEpoch(int.parse(initialDate));
@@ -117,7 +120,7 @@ class EditState extends State<EditScreen> {
       }
     });
   }
-
+  
   // Delete this counter from the database and close screen
   void _deleteCounter() async{
     counterDatabase.deleteCounter(db, pName).then((v) async {
@@ -136,11 +139,9 @@ class EditState extends State<EditScreen> {
       Navigator.pop(context);
     });
   }
-
-
+  
   Future <void> _modifyDate(DateTime v) async {
     initialDate = v.millisecondsSinceEpoch.toString();
-
     String month;
     switch (v.month) {
       case 1: month = "January"; break;
@@ -160,18 +161,28 @@ class EditState extends State<EditScreen> {
     setState(() {modifiedRedable = "$month ${v.day}, ${v.year}";});
     return;
   }
-
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: new AppBar(
-        title: new Text("Editing Counter '$pName'", textAlign: TextAlign.center),
-        elevation: 4.0,
+        title: new Text(
+          "Editing Counter $pName",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            letterSpacing: .7,
+            fontWeight: FontWeight.w600,
+            color: Colors.white
+          ),
+        ),
+        elevation: (Platform.isAndroid) ? 4 : 0,
       ),
-      body: new Builder(
-        builder: (BuildContext context) {
-          return Container(
+      // Surrounded in ListView so that if it overflows while in landscape mode then the user can scroll
+      body: ListView(
+        // Physics to prevent scrolling when not needed
+        physics: ClampingScrollPhysics(),
+        children: <Widget>[
+          Container(
             padding: const EdgeInsets.all(16.0),
             child: new Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -186,6 +197,7 @@ class EditState extends State<EditScreen> {
                   autovalidate: true,
                   decoration: new InputDecoration(
                     labelText: "Counter Name",
+                    border: const OutlineInputBorder()
                   ),
                   validator: (text) {
                       if ( text.length < 1)
@@ -221,74 +233,39 @@ class EditState extends State<EditScreen> {
                     ],
                   ),
                   onTap: () => showDatePicker(
-                    initialDate: new DateTime.now(),
-                    firstDate: new DateTime.now().subtract(new Duration(days: 3000)),
-                    lastDate: new DateTime.now().add(new Duration(days: 3000)),
+                    initialDate: new DateTime.fromMillisecondsSinceEpoch(int.parse(pInitial)),
+                    firstDate: new DateTime.now().subtract(new Duration(days: 5000)),
+                    lastDate: new DateTime.now(),
                     context: context,
                   ).then((v) async => await _modifyDate(v))
                 ),
                 new SizedBox(
                   height: 48.0,
                 ),
-                new RaisedButton(
-                  child: new Text("SAVE"),
-                  onPressed: (){
-                    if (_nameFieldKey.currentState.validate()){
-                      Scaffold
-                      .of(context)
-                      .showSnackBar(
-                        SnackBar(
-                          content: Text('Saving Data'),
-                          duration: new Duration(seconds: 4)
-                        )
-                      );
-                      _updateCounter(_controllerName.text.toString());
-                    }
-                  }
-                ),
-                new SizedBox(
-                  height: 30,
-                ),
-                new Row(
+                (Platform.isAndroid)
+                ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    new OutlineButton(
-                      child: new Text("RESTART"),
-                      onPressed: () {
-                        showDialog<void>(
-                          context: context,
-                          barrierDismissible: true, // user can type outside box to dismiss
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('Are you sure?'),
-                              content: SingleChildScrollView(
-                                child: ListBody(
-                                  children: <Widget>[
-                                    Text('Do you really want to restart \'$pName\' ?'),
-                                  ],
-                                ),
-                              ),
-                              actions: <Widget>[
-                                FlatButton(
-                                  child: Text('Cancel'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("I\'m sure"),
-                                  onPressed: () {
-                                    var now = DateTime.now();
-                                    var today = DateTime(now.year, now.month, now.day);
-                                    initialDate = today.millisecondsSinceEpoch.toString();
-                                    _updateCounter(pName);
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ]
-                            );
+                    OutlineButton(
+                      child: new Text(
+                        "RESTART",
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          letterSpacing: 1,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red
+                        )
+                      ),
+                      onPressed: () async {
+                        common.showRestartDialog(context, db, pName).then((v) {
+                          if(v) {
+                            var now = DateTime.now();
+                            var today = DateTime(now.year, now.month, now.day);
+                            initialDate = today.millisecondsSinceEpoch.toString();
+                            _updateCounter(pName);
+                            common.deleteFlagsDatabase(pName);
                           }
-                        );
+                        });
                       },
                       borderSide: BorderSide(
                         color: Colors.red,
@@ -299,40 +276,21 @@ class EditState extends State<EditScreen> {
                     new SizedBox(
                       width: 20,
                     ),
-                    new OutlineButton(
-                      child: new Text("DELETE"),
+                    OutlineButton(
+                      child: new Text(
+                        "DELETE",
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          letterSpacing: 1,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red
+                        )
+                      ),
                       onPressed: () {
-                        showDialog<void>(
-                          context: context,
-                          barrierDismissible: true, // user can type outside box to dismiss
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('Are you sure?'),
-                              content: SingleChildScrollView(
-                                child: ListBody(
-                                  children: <Widget>[
-                                    Text('Do you really want to delete \'$pName\' ?'),
-                                  ],
-                                ),
-                              ),
-                              actions: <Widget>[
-                                FlatButton(
-                                  child: Text('Cancel'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("I\'m sure"),
-                                  onPressed: () {
-                                    _deleteCounter();
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ]
-                            );
-                          }
-                        );
+                        common.showDeleteDialog(context, db, pName).then((v) {
+                          if(v)
+                          Navigator.of(context).pop();
+                        });
                       },
                       borderSide: BorderSide(
                         color: Colors.red,
@@ -340,13 +298,83 @@ class EditState extends State<EditScreen> {
                       ),
                       textColor: Colors.red,
                     ),
+                    new SizedBox(
+                      width: 20,
+                    ),
+                    RaisedButton(
+                      child: new Text(
+                        "SAVE",
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          letterSpacing: 1,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white
+                        )
+                      ),
+                      onPressed: (){
+                        if (_nameFieldKey.currentState.validate()){
+                          _updateCounter(_controllerName.text.toString());
+                        }
+                      },
+                      color: Colors.green,
+                      textColor: Colors.white,
+                    )
+                  ]
+                )
+                : Column(
+                  children: <Widget>[
+                    CupertinoButton(
+                      child: new Text("SAVE"),
+                      onPressed: (){
+                        if (_nameFieldKey.currentState.validate()){
+                          _updateCounter(_controllerName.text.toString());
+                        }
+                      },
+                      color: Colors.green,
+                    ),
+                    CupertinoButton(
+                      child: new Text(
+                        "RESTART",
+                        style: TextStyle(
+                          color: Colors.red
+                        ),
+                      ),
+                      onPressed: () async {
+                        common.showRestartDialog(context, db, pName).then((v) {
+                          if(v) {
+                            var now = DateTime.now();
+                            var today = DateTime(now.year, now.month, now.day);
+                            initialDate = today.millisecondsSinceEpoch.toString();
+                            _updateCounter(pName);
+                            common.deleteFlagsDatabase(pName);
+                          }
+                        });
+                      },
+                    ),
+                    CupertinoButton(
+                      child: new Text(
+                        "DELETE",
+                        style: TextStyle(
+                          color: Colors.red
+                        ),
+                      ),
+                      onPressed: () {
+                        common.showDeleteDialog(context, db, pName).then((v) {
+                          if(v)
+                          Navigator.of(context).pop();
+                        });
+                      },
+                    ),
+                    new SizedBox(
+                      height: 10,
+                    ),
                   ],
-                ),
+                )
               ],
             )
-          );
-        },
-      )
+          )
+        ],
+      ),
     );
   }
 }

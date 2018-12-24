@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 // Storage
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -51,15 +53,17 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
 
   void setTextStyles() {
     _settingTextStyle = TextStyle(
-      fontSize: 17.0,
-      color: Colors.black87,
-      fontWeight: FontWeight.w700,
+      fontSize: 16,
+      letterSpacing: .7,
+      fontWeight: FontWeight.w600,
+      color: Colors.black.withOpacity(.75)
     );
 
     _settingHeaderStyle = TextStyle(
-      fontSize: 15.0,
-      color: Colors.black45,
-      fontWeight: FontWeight.w500,
+      fontSize: 14.0,
+      letterSpacing: 1,
+      fontWeight: FontWeight.w600,
+      color: Colors.black54
     );
   }
 
@@ -116,8 +120,8 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
   Future <void> _createPin(bool v) async {
     // If activating
     if (v) {
-      String pin;
-      showDialog<void>(
+      (Platform.isAndroid)
+      ? showDialog<void>(
         context: context,
         barrierDismissible: true, // user can type outside box to dismiss
         builder: (BuildContext context) {
@@ -178,6 +182,72 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
             ],
           );
         },
+      )
+      : showCupertinoDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: Text('Before you start!'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text('Make sure to write or remember this code.'),
+                  Text('If you forget it, all your data will be lost.'),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  setState(() {secured = false;});
+                  Navigator.of(context).pop();
+                },
+              ),
+              FlatButton(
+                child: Text('Accept'),
+                onPressed: () {
+                  showCupertinoDialog<void>(
+                    context:  context,
+                    builder: (BuildContext context) {
+                      return Scaffold(
+                        body: PinCode(
+                          title: Text(
+                            "Create Pin",
+                            style: TextStyle(
+                                color: Colors.white, fontSize: 25.0, fontWeight: FontWeight.bold),
+                          ),
+                          subTitle: Text(
+                            "Make sure to write it somewhere",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          keyTextStyle: TextStyle(
+                            fontSize: 30,
+                            letterSpacing: 1,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white
+                          ),
+                          obscurePin: false,
+                          codeLength: 4,
+                          onCodeEntered: (code) {
+                            //callback after full code has been entered
+                            _setPin(code.toString());
+                            setState(() {secured = true;});
+                            // Dismiss later dialog box
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      );
+                    }
+                  ).then((v) {
+                    // Dismiss former dialog box
+                    Navigator.of(context).pop();
+                  });
+                },
+              ),
+            ],
+          );
+        }
       );
     }
     else {
@@ -219,8 +289,16 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: new AppBar(
-        title: new Text("Settings", textAlign: TextAlign.center,),
-        elevation: 4.0,
+        title: new Text(
+          "Settings",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            letterSpacing: .7,
+            fontWeight: FontWeight.w600,
+            color: Colors.white
+          ),
+        ),
+        elevation: (Platform.isAndroid) ? 4 : 0,
       ),
       backgroundColor: Colors.white.withOpacity(.97),
       body: new Builder(
@@ -253,13 +331,21 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
               new ListTile(
                 leading: Icon(
                   Icons.access_time,
-                  color: Colors.black87,
+                  color: Colors.black.withOpacity(.75)
                 ),
                 title: new Text(
                   "Daily reminder",
                   style: _settingTextStyle,
                 ),
-                trailing: Switch(
+                trailing: (Platform.isAndroid)
+                ? Switch(
+                  value: reminder,
+                  onChanged: ((v) {
+                    _setReminderSwitch(v);
+                    setState(() {});
+                  }),
+                )
+                : CupertinoSwitch(
                   value: reminder,
                   onChanged: ((v) {
                     _setReminderSwitch(v);
@@ -276,7 +362,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
                       (reminderTime != null) ? _readableTimeString(reminderTime) : _readableTimeString(defaultTime),
                       style: TextStyle(
                         // If switch is on display enabled
-                        color: reminder ? Colors.black87 : Colors.black45,
+                        color: reminder ? Colors.black.withOpacity(.75) : Colors.black45,
                         fontSize: 43,
                         fontWeight: FontWeight.w400,
                       )
@@ -300,13 +386,22 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
               new ListTile(
                 leading: Icon(
                   Icons.security,
-                  color: Colors.black87,
+                  color: Colors.black.withOpacity(.75)
                 ),
                 title: new Text(
                   "Secure with PIN",
                   style: _settingTextStyle,
                 ),
-                trailing: new Switch(
+                trailing: (Platform.isAndroid)
+                ? Switch(
+                  value: secured,
+                  onChanged: ((v) {
+                    //TODO make sure pin works
+                    _createPin(v);
+                    setState(() {});
+                  }),
+                )
+                : CupertinoSwitch(
                   value: secured,
                   onChanged: ((v) {
                     //TODO make sure pin works
@@ -327,7 +422,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
               new ListTile(
                 leading: Icon(
                   Icons.cloud_upload,
-                  color: Colors.black87,
+                  color: Colors.black.withOpacity(.75)
                 ),
                 title: new Text(
                   "Backup to the cloud",
@@ -341,7 +436,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
               new ListTile(
                 leading: Icon(
                   Icons.file_download,
-                  color: Colors.black87,
+                  color: Colors.black.withOpacity(.75)
                 ),
                 title: new Text(
                   "Export to offline file",
@@ -351,7 +446,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
               new ListTile(
                 leading: Icon(
                   Icons.file_upload,
-                  color: Colors.black87,
+                  color: Colors.black.withOpacity(.75)
                 ),
                 title: new Text(
                   "Import from offline file",
