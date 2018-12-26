@@ -217,6 +217,9 @@ class AddCounterState extends State<AddCounterScreen> {
                 ),
                 (Platform.isAndroid)
                 ? new RaisedButton(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                  ),
                   child: new Text(
                     "ADD COUNTER",
                     style: TextStyle(

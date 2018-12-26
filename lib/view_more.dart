@@ -252,7 +252,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
           ),
         ],
       ),
-      
+      backgroundColor: Colors.white,
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
         child: new Row(

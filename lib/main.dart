@@ -230,6 +230,38 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen()));
                     },
+                  ),new ListTile(
+                    leading: new Icon(
+                      Icons.monetization_on,
+                      color:Colors.black.withOpacity(.75)
+                    ),
+                    title: Text(
+                      'Donate',
+                      textAlign: TextAlign.left,
+                      style: _drawerFont,
+                    ), 
+                  ),
+                  new ListTile(
+                    leading: new Icon(
+                      Icons.book,
+                      color:Colors.black.withOpacity(.75)
+                    ),
+                    title: Text(
+                      'Help and Q&A',
+                      textAlign: TextAlign.left,
+                      style: _drawerFont,
+                    ), 
+                  ),
+                  new ListTile(
+                    leading: new Icon(
+                      Icons.info,
+                      color:Colors.black.withOpacity(.75)
+                    ),
+                    title: Text(
+                      'Credit',
+                      textAlign: TextAlign.left,
+                      style: _drawerFont,
+                    ), 
                   ),
                   new ListTile(
                     leading: new Icon(

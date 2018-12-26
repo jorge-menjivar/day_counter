@@ -18,8 +18,6 @@ class FlagsDatabase {
     String path = join(documentsDirectory.path, '${id}Flags');
     return await openDatabase(path, version: 1,
       onCreate: (Database db, int version) async {
-        // When creating the db, create the table
-        // THE FIRST ENTRY IS NULL SO THAT IT IS EASIER TO ADD FLAGS LATER
         await db.execute(
             "CREATE TABLE Flags ("
                 "${Flags.dbDate} TEXT PRIMARY KEY "
@@ -49,6 +47,12 @@ class FlagsDatabase {
   /// Get query of all the rows in database
   Future getQuery(Database db) async {
     var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} ASC');
+    return query;
+  }
+  
+  /// Get query of all the rows in database
+  Future getQueryDesc(Database db) async {
+    var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} DESC');
     return query;
   }
 

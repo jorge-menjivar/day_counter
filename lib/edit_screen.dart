@@ -247,6 +247,9 @@ class EditState extends State<EditScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     OutlineButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                      ),
                       child: new Text(
                         "RESTART",
                         style: TextStyle(
@@ -277,6 +280,9 @@ class EditState extends State<EditScreen> {
                       width: 20,
                     ),
                     OutlineButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                      ),
                       child: new Text(
                         "DELETE",
                         style: TextStyle(
@@ -302,6 +308,9 @@ class EditState extends State<EditScreen> {
                       width: 20,
                     ),
                     RaisedButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                      ),
                       child: new Text(
                         "SAVE",
                         style: TextStyle(
