@@ -4,10 +4,8 @@ import 'dart:io';
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
-import 'package:pin_code_view/pin_code_view.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
-import 'algorithms.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -17,8 +15,68 @@ import 'flags_database.dart';
 
 class CommonFunctions {
   
+  final storage = new FlutterSecureStorage();
+  
   CounterDatabase counterDatabase = CounterDatabase();
   FlagsDatabase flagsDatabase = FlagsDatabase();
+  
+  
+  /// Initialize notification system
+  Future<void> setUpNotifications() async {
+    
+    // Reading the saved time for daily reminder.
+    String timeString = await storage.read(key: "reminderTime");
+
+    // Reading the switch for REMINDER
+    String reminderString = await storage.read(key: "reminder");
+    
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    var initializationSettingsAndroid = new AndroidInitializationSettings('ic_notifications_black_24dp');
+    
+    var initializationSettingsIOS = new IOSInitializationSettings();
+    
+    var initializationSettings = new InitializationSettings(initializationSettingsAndroid, initializationSettingsIOS);
+    
+    flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    
+    // Canceling all the previously setup notifications.
+    await flutterLocalNotificationsPlugin.cancelAll();
+      
+      // If the reminders are enabled or default
+    if (reminderString == 'true' || reminderString == null) {
+      
+      var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+        '1', 'Reminder', 'Daily reminder to keep you on track',
+        importance: Importance.High, priority: Priority.High
+      );
+      
+      var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+      
+      var platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+      
+      // If time has been set, otherwise use default
+      var reminderTime;
+      if (timeString != null) {
+        reminderTime = TimeOfDay(
+          hour: int.parse(timeString.split(":")[0]),
+          minute: int.parse(timeString.split(":")[1]),
+        );
+      }
+      var time;
+      (timeString == null) ? time = new Time(20, 0, 0) : time = new Time(reminderTime.hour, reminderTime.minute, 0);
+      
+      await flutterLocalNotificationsPlugin.showDailyAtTime(
+        0,
+        'Did you succeed today?',
+        'Save your progress in the app',
+        time,
+        platformChannelSpecifics
+      );
+    }
+  }
+  
   
   /// Adds flag with the given date to the database.
   Future<void> addRedFlagToDb (DateTime dateTime, String name, String initial) async{
@@ -84,7 +142,6 @@ class CommonFunctions {
     }
     return;
   }
-  
   
   /// Calculate if days should be added to the given counter [name]
   Future<void> incrementCounter(Database db, String name, String valueString, String lastString) async{

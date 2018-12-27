@@ -9,11 +9,11 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/../../home_screen_widgets/android" />
-            <option value="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-2.1.1/android" />
+            <option value="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_local_notifications-0.4.2+1/android" />
+            <option value="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_secure_storage-3.1.2/android" />
+            <option value="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-2.1.5/android" />
             <option value="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-0.4.1/android" />
-            <option value="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/quick_actions-0.2.2/android" />
-            <option value="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.11.2+4/android" />
+            <option value="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.13.0+1/android" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

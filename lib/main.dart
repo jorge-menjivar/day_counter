@@ -64,7 +64,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   var dataLists = List<List<ProgressByDate>>();
 
   // If app is pin protected
-  bool secured = false;
+  bool secured = true;
   String pin;
   final storage = new FlutterSecureStorage();
 
@@ -78,12 +78,20 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   @override
   void initState(){
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadPin();
+    common.setUpNotifications();
     _initDb();
   }
   
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    common.setUpNotifications();
+  }
+  
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
   
@@ -92,6 +100,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     pin = await storage.read(key: "pin");
     if (pin != null && pin != "") {
       secured = true;
+    }
+    else {
+      secured = false;
     }
   }
   
@@ -324,7 +335,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
             fontWeight: FontWeight.w600,
             color: Colors.white
           ),
-          obscurePin: false,
+          obscurePin: true,
           codeLength: 4,
           onCodeEntered: (code) {
             //callback after full code has been entered
@@ -389,68 +400,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           ),
         ),
       ),
-      /**drawer:     new Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            new Container(
-              child: DrawerHeader(
-                child: Text(
-                  'Day Counter',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white
-                  ),
-                ),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage(
-                    "https://images.pexels.com/photos/396547/pexels-photo-396547.jpeg?auto=compress&cs=tinysrgb&h=350"
-                    ),
-                  )
-                ),
-              ),
-            ),
-            new Container(
-              child: new Column(
-                children: <Widget>[
-                  new ListTile(
-                    leading: new Icon(
-                      Icons.settings,
-                      color: Colors.black87,
-                    ),
-                    title: Text(
-                      'Settings',
-                      textAlign: TextAlign.left,
-                      style: _drawerFont,
-                    ), 
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen()));
-                    },
-                  ),
-                  Divider(),
-                  new ListTile(
-                    leading: new Icon(
-                      Icons.folder,
-                      color: Colors.black87,
-                    ),
-                    title: Text(
-                      'Terms of Use and Privacy',
-                      textAlign: TextAlign.left,
-                      style: _drawerFont,
-                    ), 
-                    // TODO go to privacy
-                    //onTap: () => Navigator.pop(context);,
-                  ),
-                ]
-              ),
-            ),
-          ],
-        ),
-      ),**/
+      
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[

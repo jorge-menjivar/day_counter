@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Utils
 import 'package:pin_code_view/pin_code_view.dart';
+import 'utils/common_funcs.dart';
 
 
 
@@ -21,6 +22,8 @@ class SettingsScreen extends StatefulWidget {
 
 class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
   SettingsState();
+  
+  CommonFunctions common = CommonFunctions();
   
   // Setting variables
   TimeOfDay reminderTime;
@@ -103,7 +106,12 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
     String parsedString = time.hour.toString() + ":" + time.minute.toString();
     // Write value 
     await storage.write(key: "reminderTime", value: parsedString);
+    
+    // Update notification system
+    await common.setUpNotifications();
+    
     setState(() {});
+    
   }
 
 
@@ -114,6 +122,11 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
 
     // Write value 
     await storage.write(key: "reminder", value: reminder.toString());
+    
+    // Update notification system
+    await common.setUpNotifications();
+    
+    setState(() {});
   }
 
   /// Brings up the dialog box to create a pin
@@ -342,14 +355,12 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
                   value: reminder,
                   onChanged: ((v) {
                     _setReminderSwitch(v);
-                    setState(() {});
                   }),
                 )
                 : CupertinoSwitch(
                   value: reminder,
                   onChanged: ((v) {
                     _setReminderSwitch(v);
-                    setState(() {});
                   }),
                 ),
               ),
