@@ -76,16 +76,25 @@ class AddCounterState extends State<AddCounterScreen> {
   void _createCounter(String name) async{
     await counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0) {
-        var last = DateTime.now().millisecondsSinceEpoch;
+        var now = DateTime.now();
+        
+        // Reformatting the date so that it starts at midnight. Rather than at time now.
+        var today = DateTime(now.year, now.month, now.day);
+        var last = today.millisecondsSinceEpoch;
         var initial = last;
 
-        if (modifiedDate != null){
+        // If the date has been modified and is not set to today. Otherwise we use the default code
+        if (modifiedDate != null && DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate)).day != today.day){
           var lastFormatted = DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate));
           var v = DateTime.now().difference(lastFormatted).inDays;
           await counterDatabase.addToDb(db, name, v.toString(), modifiedDate, last.toString());
+          print("initial = ${DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate)).hour}");
+          print("last = ${DateTime.fromMillisecondsSinceEpoch(last).hour}");
         }
         else {
           await counterDatabase.addToDb(db, name, "0", initial.toString(), last.toString());
+          print("initial = ${DateTime.fromMillisecondsSinceEpoch(initial).hour}");
+          print("last = ${DateTime.fromMillisecondsSinceEpoch(last).hour}");
         }
         Navigator.pop(context);
       }
@@ -95,7 +104,7 @@ class AddCounterState extends State<AddCounterScreen> {
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.TOP,
           timeInSecForIos: 2,
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.red,
           textColor: Colors.white,
         );
       }
@@ -104,7 +113,6 @@ class AddCounterState extends State<AddCounterScreen> {
 
   Future <void> _modifyDate(DateTime v) async {
     modifiedDate = v.millisecondsSinceEpoch.toString();
-
 
     String month;
     switch (v.month) {

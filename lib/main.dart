@@ -1,5 +1,3 @@
-
-
 import 'dart:ui';
 import 'dart:io';
 
@@ -8,6 +6,8 @@ import 'view_flags_screen.dart';
 import 'add_counter_screen.dart';
 import 'edit_screen.dart';
 import 'view_more.dart';
+import 'terms.dart';
+import 'credits.dart';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
@@ -64,7 +64,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   var dataLists = List<List<ProgressByDate>>();
 
   // If app is pin protected
-  bool secured = true;
+  bool secured = false;
   String pin;
   final storage = new FlutterSecureStorage();
 
@@ -97,18 +97,16 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   
   /// Load Pin from secure storage
   void _loadPin() async{
+    //TODO fix pin view overflowing on landscape
     pin = await storage.read(key: "pin");
     if (pin != null && pin != "") {
       secured = true;
-    }
-    else {
-      secured = false;
     }
   }
   
   /// Initialize database
   void _initDb() async {
-    counterDatabase.getDb().then((res) async{
+    await counterDatabase.getDb().then((res) async{
       db = res;
       queryResult = await counterDatabase.getQuery(db);
       tileCount = queryResult.length;
@@ -241,7 +239,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen()));
                     },
-                  ),new ListTile(
+                  ),
+                  /* new ListTile(
                     leading: new Icon(
                       Icons.monetization_on,
                       color:Colors.black.withOpacity(.75)
@@ -262,17 +261,21 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       textAlign: TextAlign.left,
                       style: _drawerFont,
                     ), 
-                  ),
+                  ),*/
                   new ListTile(
                     leading: new Icon(
                       Icons.info,
                       color:Colors.black.withOpacity(.75)
                     ),
                     title: Text(
-                      'Credit',
+                      'Credits',
                       textAlign: TextAlign.left,
                       style: _drawerFont,
-                    ), 
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder:(context) => CreditsScreen()));
+                    },
                   ),
                   new ListTile(
                     leading: new Icon(
@@ -284,8 +287,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       textAlign: TextAlign.left,
                       style: _drawerFont,
                     ), 
-                    // TODO go to privacy
-                    //onTap: () => Navigator.pop(context);,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder:(context) => TermsScreen()));
+                    },
                   ),
                 ]
               ),
@@ -446,6 +451,27 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   }
 
   Widget _buildCounters() {
+    if (tileCount == 0) {
+      return ListView(
+        children: <Widget>[
+          SizedBox(
+            height: 50,
+          ),
+          ListTile(
+            title: Text(
+              "Add a counter to get started",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                letterSpacing: .8,
+                fontWeight: FontWeight.w600,
+                color: Colors.black.withOpacity(.75)
+              ),
+            ),
+          )
+        ],
+      );
+    }
     return ListView.builder(
       itemCount: tileCount,
       // Getting values from query of counters in database
@@ -647,8 +673,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                     ),
                     iconSize: 30,
                     onPressed: () {
-                      (value != "0") ?
-                      showDatePicker(
+                      (value != "0") 
+                      ? showDatePicker(
                         initialDate: new DateTime.now(),
                         firstDate: new DateTime.fromMillisecondsSinceEpoch(int.parse(initial)).add(new Duration(days: 1)),
                         lastDate: new DateTime.now(),
@@ -658,13 +684,13 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                            await common.addRedFlagToDb(v, name, initial);
                           _getData();
                         }
-                      }) : 
-                      Fluttertoast.showToast(
-                        msg: "Get out of bed when you are ready",
+                      }) 
+                      : Fluttertoast.showToast(
+                        msg: "You need at least one day",
                         toastLength: Toast.LENGTH_SHORT,
                         gravity: ToastGravity.CENTER,
                         timeInSecForIos: 2,
-                        backgroundColor: Colors.transparent,
+                        backgroundColor: Colors.red,
                         textColor: Colors.white,
                       );
                     },

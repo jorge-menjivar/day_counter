@@ -121,24 +121,6 @@ class EditState extends State<EditScreen> {
     });
   }
   
-  // Delete this counter from the database and close screen
-  void _deleteCounter() async{
-    counterDatabase.deleteCounter(db, pName).then((v) async {
-
-      await flagsDatabase.deleteDb(pName);
-
-      Fluttertoast.showToast(
-        msg: "$pName deleted!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
-        timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
-        textColor: Colors.white,
-      );
-
-      Navigator.pop(context);
-    });
-  }
   
   Future <void> _modifyDate(DateTime v) async {
     initialDate = v.millisecondsSinceEpoch.toString();
@@ -161,6 +143,7 @@ class EditState extends State<EditScreen> {
     setState(() {modifiedRedable = "$month ${v.day}, ${v.year}";});
     return;
   }
+  
   
   @override
   Widget build(BuildContext context) {

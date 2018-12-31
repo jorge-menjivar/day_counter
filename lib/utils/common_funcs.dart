@@ -23,7 +23,6 @@ class CommonFunctions {
   
   /// Initialize notification system
   Future<void> setUpNotifications() async {
-    
     // Reading the saved time for daily reminder.
     String timeString = await storage.read(key: "reminderTime");
 
@@ -80,7 +79,6 @@ class CommonFunctions {
   
   /// Adds flag with the given date to the database.
   Future<void> addRedFlagToDb (DateTime dateTime, String name, String initial) async{
-    
     assert (dateTime != null);
     // The initial date of the counter
     DateTime initDate = DateTime.fromMillisecondsSinceEpoch(int.parse(initial));
@@ -121,7 +119,7 @@ class CommonFunctions {
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.CENTER,
               timeInSecForIos: 2,
-              backgroundColor: Colors.transparent,
+              backgroundColor: Colors.red,
               textColor: Colors.white,
             );
           }
@@ -136,22 +134,24 @@ class CommonFunctions {
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
         timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.red,
         textColor: Colors.white,
       );
     }
     return;
   }
   
+  
+  
   /// Calculate if days should be added to the given counter [name]
   Future<void> incrementCounter(Database db, String name, String valueString, String lastString) async{
-    
     DateTime _last = DateTime.fromMillisecondsSinceEpoch(int.parse(lastString));
-    int _counter = int.parse(valueString);
-    var _today = DateTime.now();
-
+    int counter = int.parse(valueString);
+    var now = DateTime.now();
+    var today = DateTime(now.year, now.month, now.day);
+    
     // The library DateTime automatically calculates the day difference for us.
-    int newDays = _today.difference(_last).inDays;
+    int newDays = today.difference(_last).inDays;
     print(newDays);
     if (newDays <= 0){
       Fluttertoast.showToast(
@@ -159,26 +159,28 @@ class CommonFunctions {
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
         timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.red,
         textColor: Colors.white,
       );
       return;
     }
     else {
-      _counter += newDays;
+      counter += newDays;
       Fluttertoast.showToast(
         msg: "$newDays added!",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
         timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.red,
         textColor: Colors.white,
       );
     }
     
     // Saving update to device
-    var todayEpoch = DateTime.now().millisecondsSinceEpoch;
-    await counterDatabase.updateCounter(db, name, _counter.toString(), todayEpoch.toString());
+    var todayEpoch = today.millisecondsSinceEpoch;
+    await counterDatabase.updateCounter(db, name, counter.toString(), todayEpoch.toString());
+    
+    print("last = ${DateTime.fromMillisecondsSinceEpoch(todayEpoch).hour}");
   }
   
   
@@ -191,7 +193,7 @@ class CommonFunctions {
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.TOP,
         timeInSecForIos: 2,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.red,
         textColor: Colors.white,
       );
     });
