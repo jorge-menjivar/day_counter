@@ -5,7 +5,7 @@ class GapAverage {
   static final dbAverage = "average";
 
   String date;
-  String average;
+  double average;
 
   GapAverage({
     @required this.date,

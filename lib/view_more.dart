@@ -22,18 +22,22 @@ class MoreScreen extends StatefulWidget {
   
   final String name;
   MoreScreen({
-    @required this.name
+    @required this.name,
   });
   
   @override
-  createState() => MoreState(pName: name);
+  createState() => MoreState(pName: name,);
 }
 
 class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   String pName;
+  
+  // Initializing the variables before the query finishes
   String pValue = "";
   String pInitial = "";
   String pLast = "";
+  
+  bool f = false, s = false;
   MoreState({
     @required this.pName,
   });
@@ -77,6 +81,10 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
         pValue = row['value'];
         pInitial = row['initial'];
         pLast = row['last'];
+        
+        // Converting the setting switches from integers to booleans
+        f = (row['fSwitch'] == 1) ? true : false;
+        s = (row['sSwitch'] == 1) ? true : false;
         
       });
       await _getData();
@@ -123,7 +131,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   /// Transfer user to Edit Counter screen
   void _editCounter() {
     Navigator.push(context, MaterialPageRoute(builder:
-      (context) => EditScreen(name: pName, value: pValue, initial: pInitial, last: pLast))
+      (context) => EditScreen(name: pName, value: pValue, initial: pInitial, last: pLast, f: f, s: s))
     ).then((v) async {
       _updateCounter();
     });
@@ -349,7 +357,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
                 
                 
                 // --------------------------------------Line Chart---------------------------------------------
-                Container(
+                (f) ? Container(
                   color: Colors.black.withAlpha(5),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(14, 8, 8, 8),
@@ -374,10 +382,13 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
                       }
                     )
                   ) 
-                ),
+                )
+                : SizedBox(),
                 
+                
+                // ----------------------------------------- Schedule -----------------------------------------------
                 //TODO
-                (pName == " ") ? ListTile(
+                (s) ? ListTile(
                   contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
                   title: Text(
                     "Cheat Days will go here",

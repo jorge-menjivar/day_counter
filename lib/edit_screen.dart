@@ -16,24 +16,31 @@ import 'utils/flags_database.dart';
 
 class EditScreen extends StatefulWidget {
   final String name, value, initial, last;
+  final bool f, s;
   EditScreen({
     @required this.name,
     @required this.value,
     @required this.initial,
-    @required this.last
+    @required this.last,
+    @required this.f,
+    @required this.s
   });
 
   @override
-  createState() => EditState(pName: name, pValue: value, pInitial: initial, pLast: last);
+  createState() => EditState(pName: name, pValue: value, pInitial: initial, pLast: last, f: f, s: s);
 }
 
 class EditState extends State<EditScreen> {
   final String pName, pValue, pInitial, pLast;
+  bool f, s;
   EditState({
     @required this.pName, 
     @required this.pValue,
     @required this.pInitial,
-    @required this.pLast});
+    @required this.pLast,
+    @required this.f,
+    @required this.s
+  });
 
   final TextEditingController _controllerName = new TextEditingController();
   final _nameFieldKey = GlobalKey<FormFieldState>();
@@ -97,11 +104,12 @@ class EditState extends State<EditScreen> {
 
         if (name == pName) {
           await counterDatabase.updateCounterAndInitial(db, name, difference.toString(), initialDate, pLast);
+          await counterDatabase.updateCounterSettings(db, name, f, s);
         }
 
         else {
           counterDatabase.deleteCounter(db, pName);
-          counterDatabase.addToDb(db, name, difference.toString(), initialDate, pLast);
+          counterDatabase.addToDb(db, name, difference.toString(), initialDate, pLast, f, s);
           flagsDatabase.renameDatabase(pName, name);
         }
 
@@ -222,9 +230,40 @@ class EditState extends State<EditScreen> {
                     context: context,
                   ).then((v) async => await _modifyDate(v))
                 ),
+                
+                // --------------------------------------- Counter Settngs -----------------------------------
+                new ListTile(
+                  leading: Icon(
+                    Icons.flag,
+                    color: Colors.red
+                  ),
+                  title: Text (
+                    "Allow Red Flags"
+                  ),
+                  trailing:
+                  (Platform.isAndroid)
+                  ? Switch(
+                    value: f,
+                    onChanged: (v) {
+                      f = v;
+                      setState(() {});
+                    }
+                  )
+                  : CupertinoSwitch(
+                    value: f,
+                    onChanged: (v) {
+                      f = v;
+                      setState(() {});
+                    }
+                  ),
+                ),
                 new SizedBox(
                   height: 48.0,
                 ),
+                
+                
+                
+                // ----------------------------------------- Buttons -----------------------------------------
                 (Platform.isAndroid)
                 ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,

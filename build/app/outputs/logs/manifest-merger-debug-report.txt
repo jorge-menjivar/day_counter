@@ -1,0 +1,242 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+MERGED from [:fluttertoast] /Users/jorge/Documents/Flutter/day_counter/build/fluttertoast/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:2:1-7:12
+MERGED from [:flutter_secure_storage] /Users/jorge/Documents/Flutter/day_counter/build/flutter_secure_storage/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:2:1-11:12
+MERGED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:2:1-14:12
+MERGED from [:sqflite] /Users/jorge/Documents/Flutter/day_counter/build/sqflite/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:2:1-7:12
+MERGED from [:flutter_local_notifications] /Users/jorge/Documents/Flutter/day_counter/build/flutter_local_notifications/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:2:1-7:12
+MERGED from [:path_provider] /Users/jorge/Documents/Flutter/day_counter/build/path_provider/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:2:1-7:12
+MERGED from [com.android.support:design:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/design-28.0.0.aar/382ff12080aed19542095d07f5fdd103/AndroidManifest.xml:17:1-24:12
+MERGED from [com.android.support:appcompat-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/appcompat-v7-28.0.0.aar/076e94f27cee8fd3b81bbd71c52394e0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support.constraint:constraint-layout:1.1.3] /Users/jorge/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.3.aar/76d75d8c13c7b23e0824987c4cebb2e2/AndroidManifest.xml:2:1-11:12
+MERGED from [com.android.support:support-v4:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-v4-28.0.0.aar/080a4ae130ecc3901827b6b2125e2975/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:animated-vector-drawable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-28.0.0.aar/6323facbaec6a5759652005d8a2ae443/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-vector-drawable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-28.0.0.aar/f5f0e75c54412e27843f0ff281dd92e0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-fragment:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-fragment-28.0.0.aar/2d0aeb657223050192b842396b39148c/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:recyclerview-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/recyclerview-v7-28.0.0.aar/b8137118ec8763e3dedf94df03540db4/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-core-ui:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-core-ui-28.0.0.aar/1da0e913da77908f862b234bda373472/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-core-utils:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-core-utils-28.0.0.aar/1e27897df7092e1a2c66ccc39eba4070/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:transition:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/transition-28.0.0.aar/d224b9fd9ba9ece7536f0d8b1c216261/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-media-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-media-compat-28.0.0.aar/a2a758352342735b8c0b4cdfeea6e4ee/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:loader:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/loader-28.0.0.aar/0974d24ef0f8576c684190705d850711/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:viewpager:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/viewpager-28.0.0.aar/dfd37c9a2adf6d91e885b8997c0d01a9/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:coordinatorlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/coordinatorlayout-28.0.0.aar/22f3eecb01150879d1e0907e6bf5ca0f/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:drawerlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/drawerlayout-28.0.0.aar/c86973361309bfd7a51aef46eea15119/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:slidingpanelayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/slidingpanelayout-28.0.0.aar/e58b9800d24031ebe23d288601e3c6b8/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:customview:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/customview-28.0.0.aar/5811e430fbbe4c5ec754a6c5848a8899/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:swiperefreshlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/swiperefreshlayout-28.0.0.aar/5505d9b17869ff62aebb2fa8c21e0748/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:asynclayoutinflater:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/asynclayoutinflater-28.0.0.aar/c5ff48e4114308652c35782c7f31899f/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:support-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-compat-28.0.0.aar/5ea5c213d4d597440af7cfaad71e3794/AndroidManifest.xml:17:1-24:12
+MERGED from [com.android.support:versionedparcelable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/versionedparcelable-28.0.0.aar/36704077c4d68c586a2e7dc5ea17b962/AndroidManifest.xml:17:1-25:12
+MERGED from [com.android.support:cursoradapter:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/cursoradapter-28.0.0.aar/e06e50cb180af5a3c263ddf5e333e864/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:cardview-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/cardview-v7-28.0.0.aar/b36eca0362e68766d0465c3a87d21cb4/AndroidManifest.xml:17:1-22:12
+MERGED from [android.arch.lifecycle:runtime:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/runtime-1.1.1.aar/ae579177ec041ccd457d05fe60c6476b/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:documentfile:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/documentfile-28.0.0.aar/804be01ceae851efc6769b35ca72b6fb/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:localbroadcastmanager:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/localbroadcastmanager-28.0.0.aar/27f7cf202c7c38650957f0c2ad5cd83d/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:print:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/print-28.0.0.aar/61a643f683bb9720f52740fbb3fceede/AndroidManifest.xml:17:1-22:12
+MERGED from [android.arch.lifecycle:viewmodel:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/viewmodel-1.1.1.aar/b1941afbcced1b91bb073e5d678f838d/AndroidManifest.xml:17:1-22:12
+MERGED from [com.android.support:interpolator:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/interpolator-28.0.0.aar/48f9f52c5905f0a52c90ef7aa2f2597d/AndroidManifest.xml:17:1-22:12
+MERGED from [android.arch.lifecycle:livedata:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/livedata-1.1.1.aar/f8df503967e6183162cfc9f59fbaa7ef/AndroidManifest.xml:17:1-22:12
+MERGED from [android.arch.lifecycle:livedata-core:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/livedata-core-1.1.1.aar/a48d5eca48e3696f3e83e8251d68d9de/AndroidManifest.xml:17:1-22:12
+MERGED from [android.arch.core:runtime:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/runtime-1.1.1.aar/a1f4868fdf15610beba1f4eb261cd58f/AndroidManifest.xml:17:1-22:12
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+	package
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:4:5-43
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+	xmlns:tools
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:3:5-51
+	android:versionCode
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:1-63:12
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.INTERNET
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:11:5-67
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:11:22-64
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:12:5-80
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:12:22-78
+application
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:21:5-61:19
+MERGED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:7:5-12:19
+MERGED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:7:5-12:19
+MERGED from [com.android.support:design:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/design-28.0.0.aar/382ff12080aed19542095d07f5fdd103/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:design:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/design-28.0.0.aar/382ff12080aed19542095d07f5fdd103/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support.constraint:constraint-layout:1.1.3] /Users/jorge/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.3.aar/76d75d8c13c7b23e0824987c4cebb2e2/AndroidManifest.xml:9:5-20
+MERGED from [com.android.support.constraint:constraint-layout:1.1.3] /Users/jorge/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.3.aar/76d75d8c13c7b23e0824987c4cebb2e2/AndroidManifest.xml:9:5-20
+MERGED from [com.android.support:support-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-compat-28.0.0.aar/5ea5c213d4d597440af7cfaad71e3794/AndroidManifest.xml:22:5-94
+MERGED from [com.android.support:support-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-compat-28.0.0.aar/5ea5c213d4d597440af7cfaad71e3794/AndroidManifest.xml:22:5-94
+MERGED from [com.android.support:versionedparcelable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/versionedparcelable-28.0.0.aar/36704077c4d68c586a2e7dc5ea17b962/AndroidManifest.xml:22:5-23:19
+MERGED from [com.android.support:versionedparcelable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/versionedparcelable-28.0.0.aar/36704077c4d68c586a2e7dc5ea17b962/AndroidManifest.xml:22:5-23:19
+	android:appComponentFactory
+		ADDED from [com.android.support:support-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-compat-28.0.0.aar/5ea5c213d4d597440af7cfaad71e3794/AndroidManifest.xml:22:18-91
+	android:supportsRtl
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:26:9-35
+	android:label
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:25:9-30
+	tools:ignore
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:27:9-48
+	android:icon
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:24:9-41
+	android:allowBackup
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:22:9-35
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:23:9-57
+activity#com.prospectusoft.daycounter.MainActivity
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:28:9-51:20
+	android:launchMode
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:32:13-43
+	android:hardwareAccelerated
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:31:13-47
+	android:windowSoftInputMode
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:34:13-55
+	android:configChanges
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:30:13-137
+	android:theme
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:33:13-47
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:29:13-41
+meta-data#io.flutter.app.android.SplashScreenUntilFirstFrame
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:42:13-44:40
+	android:value
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:44:17-37
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:43:17-82
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:46:13-50:29
+action#android.intent.action.MAIN
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:47:17-69
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:47:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:49:17-77
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:49:27-74
+receiver#com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:53:9-57:20
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:53:19-107
+intent-filter#action:name:android.intent.action.BOOT_COMPLETED
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:54:13-56:29
+action#android.intent.action.BOOT_COMPLETED
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:55:17-86
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:55:25-76
+receiver#com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver
+ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:59:9-106
+	android:name
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml:59:19-103
+uses-sdk
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+MERGED from [:fluttertoast] /Users/jorge/Documents/Flutter/day_counter/build/fluttertoast/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:fluttertoast] /Users/jorge/Documents/Flutter/day_counter/build/fluttertoast/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_secure_storage] /Users/jorge/Documents/Flutter/day_counter/build/flutter_secure_storage/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:7:5-9:41
+MERGED from [:flutter_secure_storage] /Users/jorge/Documents/Flutter/day_counter/build/flutter_secure_storage/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:7:5-9:41
+MERGED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:sqflite] /Users/jorge/Documents/Flutter/day_counter/build/sqflite/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:sqflite] /Users/jorge/Documents/Flutter/day_counter/build/sqflite/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_local_notifications] /Users/jorge/Documents/Flutter/day_counter/build/flutter_local_notifications/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_local_notifications] /Users/jorge/Documents/Flutter/day_counter/build/flutter_local_notifications/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:path_provider] /Users/jorge/Documents/Flutter/day_counter/build/path_provider/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [:path_provider] /Users/jorge/Documents/Flutter/day_counter/build/path_provider/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:5:5-44
+MERGED from [com.android.support:design:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/design-28.0.0.aar/382ff12080aed19542095d07f5fdd103/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:design:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/design-28.0.0.aar/382ff12080aed19542095d07f5fdd103/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:appcompat-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/appcompat-v7-28.0.0.aar/076e94f27cee8fd3b81bbd71c52394e0/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:appcompat-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/appcompat-v7-28.0.0.aar/076e94f27cee8fd3b81bbd71c52394e0/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support.constraint:constraint-layout:1.1.3] /Users/jorge/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.3.aar/76d75d8c13c7b23e0824987c4cebb2e2/AndroidManifest.xml:5:5-7:41
+MERGED from [com.android.support.constraint:constraint-layout:1.1.3] /Users/jorge/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.3.aar/76d75d8c13c7b23e0824987c4cebb2e2/AndroidManifest.xml:5:5-7:41
+MERGED from [com.android.support:support-v4:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-v4-28.0.0.aar/080a4ae130ecc3901827b6b2125e2975/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-v4:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-v4-28.0.0.aar/080a4ae130ecc3901827b6b2125e2975/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:animated-vector-drawable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-28.0.0.aar/6323facbaec6a5759652005d8a2ae443/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:animated-vector-drawable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-28.0.0.aar/6323facbaec6a5759652005d8a2ae443/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-vector-drawable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-28.0.0.aar/f5f0e75c54412e27843f0ff281dd92e0/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-vector-drawable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-28.0.0.aar/f5f0e75c54412e27843f0ff281dd92e0/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-fragment:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-fragment-28.0.0.aar/2d0aeb657223050192b842396b39148c/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-fragment:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-fragment-28.0.0.aar/2d0aeb657223050192b842396b39148c/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:recyclerview-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/recyclerview-v7-28.0.0.aar/b8137118ec8763e3dedf94df03540db4/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:recyclerview-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/recyclerview-v7-28.0.0.aar/b8137118ec8763e3dedf94df03540db4/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-core-ui:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-core-ui-28.0.0.aar/1da0e913da77908f862b234bda373472/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-core-ui:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-core-ui-28.0.0.aar/1da0e913da77908f862b234bda373472/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-core-utils:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-core-utils-28.0.0.aar/1e27897df7092e1a2c66ccc39eba4070/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-core-utils:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-core-utils-28.0.0.aar/1e27897df7092e1a2c66ccc39eba4070/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:transition:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/transition-28.0.0.aar/d224b9fd9ba9ece7536f0d8b1c216261/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:transition:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/transition-28.0.0.aar/d224b9fd9ba9ece7536f0d8b1c216261/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-media-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-media-compat-28.0.0.aar/a2a758352342735b8c0b4cdfeea6e4ee/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-media-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-media-compat-28.0.0.aar/a2a758352342735b8c0b4cdfeea6e4ee/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:loader:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/loader-28.0.0.aar/0974d24ef0f8576c684190705d850711/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:loader:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/loader-28.0.0.aar/0974d24ef0f8576c684190705d850711/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:viewpager:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/viewpager-28.0.0.aar/dfd37c9a2adf6d91e885b8997c0d01a9/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:viewpager:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/viewpager-28.0.0.aar/dfd37c9a2adf6d91e885b8997c0d01a9/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:coordinatorlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/coordinatorlayout-28.0.0.aar/22f3eecb01150879d1e0907e6bf5ca0f/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:coordinatorlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/coordinatorlayout-28.0.0.aar/22f3eecb01150879d1e0907e6bf5ca0f/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:drawerlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/drawerlayout-28.0.0.aar/c86973361309bfd7a51aef46eea15119/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:drawerlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/drawerlayout-28.0.0.aar/c86973361309bfd7a51aef46eea15119/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:slidingpanelayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/slidingpanelayout-28.0.0.aar/e58b9800d24031ebe23d288601e3c6b8/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:slidingpanelayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/slidingpanelayout-28.0.0.aar/e58b9800d24031ebe23d288601e3c6b8/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:customview:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/customview-28.0.0.aar/5811e430fbbe4c5ec754a6c5848a8899/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:customview:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/customview-28.0.0.aar/5811e430fbbe4c5ec754a6c5848a8899/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:swiperefreshlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/swiperefreshlayout-28.0.0.aar/5505d9b17869ff62aebb2fa8c21e0748/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:swiperefreshlayout:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/swiperefreshlayout-28.0.0.aar/5505d9b17869ff62aebb2fa8c21e0748/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:asynclayoutinflater:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/asynclayoutinflater-28.0.0.aar/c5ff48e4114308652c35782c7f31899f/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:asynclayoutinflater:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/asynclayoutinflater-28.0.0.aar/c5ff48e4114308652c35782c7f31899f/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-compat-28.0.0.aar/5ea5c213d4d597440af7cfaad71e3794/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-compat:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/support-compat-28.0.0.aar/5ea5c213d4d597440af7cfaad71e3794/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:versionedparcelable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/versionedparcelable-28.0.0.aar/36704077c4d68c586a2e7dc5ea17b962/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:versionedparcelable:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/versionedparcelable-28.0.0.aar/36704077c4d68c586a2e7dc5ea17b962/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:cursoradapter:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/cursoradapter-28.0.0.aar/e06e50cb180af5a3c263ddf5e333e864/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:cursoradapter:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/cursoradapter-28.0.0.aar/e06e50cb180af5a3c263ddf5e333e864/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:cardview-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/cardview-v7-28.0.0.aar/b36eca0362e68766d0465c3a87d21cb4/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:cardview-v7:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/cardview-v7-28.0.0.aar/b36eca0362e68766d0465c3a87d21cb4/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:runtime:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/runtime-1.1.1.aar/ae579177ec041ccd457d05fe60c6476b/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:runtime:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/runtime-1.1.1.aar/ae579177ec041ccd457d05fe60c6476b/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:documentfile:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/documentfile-28.0.0.aar/804be01ceae851efc6769b35ca72b6fb/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:documentfile:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/documentfile-28.0.0.aar/804be01ceae851efc6769b35ca72b6fb/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:localbroadcastmanager:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/localbroadcastmanager-28.0.0.aar/27f7cf202c7c38650957f0c2ad5cd83d/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:localbroadcastmanager:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/localbroadcastmanager-28.0.0.aar/27f7cf202c7c38650957f0c2ad5cd83d/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:print:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/print-28.0.0.aar/61a643f683bb9720f52740fbb3fceede/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:print:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/print-28.0.0.aar/61a643f683bb9720f52740fbb3fceede/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:viewmodel:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/viewmodel-1.1.1.aar/b1941afbcced1b91bb073e5d678f838d/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:viewmodel:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/viewmodel-1.1.1.aar/b1941afbcced1b91bb073e5d678f838d/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:interpolator:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/interpolator-28.0.0.aar/48f9f52c5905f0a52c90ef7aa2f2597d/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:interpolator:28.0.0] /Users/jorge/.gradle/caches/transforms-1/files-1.1/interpolator-28.0.0.aar/48f9f52c5905f0a52c90ef7aa2f2597d/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:livedata:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/livedata-1.1.1.aar/f8df503967e6183162cfc9f59fbaa7ef/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:livedata:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/livedata-1.1.1.aar/f8df503967e6183162cfc9f59fbaa7ef/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:livedata-core:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/livedata-core-1.1.1.aar/a48d5eca48e3696f3e83e8251d68d9de/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.lifecycle:livedata-core:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/livedata-core-1.1.1.aar/a48d5eca48e3696f3e83e8251d68d9de/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.core:runtime:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/runtime-1.1.1.aar/a1f4868fdf15610beba1f4eb261cd58f/AndroidManifest.xml:20:5-44
+MERGED from [android.arch.core:runtime:1.1.1] /Users/jorge/.gradle/caches/transforms-1/files-1.1/runtime-1.1.1.aar/a1f4868fdf15610beba1f4eb261cd58f/AndroidManifest.xml:20:5-44
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/jorge/Documents/Flutter/day_counter/android/app/src/main/AndroidManifest.xml
+activity#io.flutter.plugins.urllauncher.UrlLauncherPlugin$WebViewActivity
+ADDED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:8:9-11:74
+	android:exported
+		ADDED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:10:13-37
+	android:theme
+		ADDED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:11:13-71
+	android:name
+		ADDED from [:url_launcher] /Users/jorge/Documents/Flutter/day_counter/build/url_launcher/intermediates/merged_manifests/debug/processDebugManifest/merged/AndroidManifest.xml:9:13-92

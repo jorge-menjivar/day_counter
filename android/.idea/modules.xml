@@ -5,11 +5,11 @@
       <module fileurl="file://$PROJECT_DIR$/android.iml" filepath="$PROJECT_DIR$/android.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_local_notifications-0.4.2+1/android/flutter_local_notifications.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_local_notifications-0.4.2+1/android/flutter_local_notifications.iml" />
-      <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_local_notifications-0.4.2+1/android/flutter_local_notifications.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_local_notifications-0.4.2+1/android/flutter_local_notifications.iml" />
       <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_secure_storage-3.1.2/android/flutter_secure_storage.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_secure_storage-3.1.2/android/flutter_secure_storage.iml" />
-      <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-2.1.5/android/fluttertoast-2.1.5-fluttertoast.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-2.1.5/android/fluttertoast-2.1.5-fluttertoast.iml" />
+      <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-2.2.2/android/fluttertoast.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-2.2.2/android/fluttertoast.iml" />
       <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-0.4.1/android/path_provider.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-0.4.1/android/path_provider.iml" />
       <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.13.0+1/android/sqflite-0.13.0+1-sqflite.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.13.0+1/android/sqflite-0.13.0+1-sqflite.iml" />
+      <module fileurl="file://$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/url_launcher-4.0.3/android/url_launcher.iml" filepath="$USER_HOME$/development/flutter/.pub-cache/hosted/pub.dartlang.org/url_launcher-4.0.3/android/url_launcher.iml" />
     </modules>
   </component>
 </project>

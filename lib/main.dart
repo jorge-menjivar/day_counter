@@ -17,6 +17,7 @@ import 'package:pin_code_view/pin_code_view.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'utils/algorithms.dart';
 import 'utils/common_funcs.dart';
+import 'package:flutter/services.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -73,11 +74,17 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   int tileCount = 0;
  
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  
+  bool _countersLoaded = false;
 
+  // TODO change settings in android manifest to allow backups
 
   @override
   void initState(){
     super.initState();
+    SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp
+    ]);
     WidgetsBinding.instance.addObserver(this);
     _loadPin();
     common.setUpNotifications();
@@ -97,7 +104,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   
   /// Load Pin from secure storage
   void _loadPin() async{
-    //TODO fix pin view overflowing on landscape
     pin = await storage.read(key: "pin");
     if (pin != null && pin != "") {
       secured = true;
@@ -111,6 +117,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       queryResult = await counterDatabase.getQuery(db);
       tileCount = queryResult.length;
       await _getData();
+      _countersLoaded = true;
       setState(() => queryResult);
     });
   }
@@ -153,9 +160,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   }
   
   /// Transfer user to Edit Counter screen
-  void _editCounter(String name, String value, String initial, String last) {
+  void _editCounter(String name, String value, String initial, String last, bool f, bool s) {
     Navigator.push(context, MaterialPageRoute(builder:
-      (context) => EditScreen(name: name, value: value, initial: initial, last: last))
+      (context) => EditScreen(name: name, value: value, initial: initial, last: last, f: f, s: s))
     ).then((v) async {
       await _updateCounters();
     });
@@ -283,7 +290,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       color:Colors.black.withOpacity(.75)
                     ),
                     title: Text(
-                      'Terms of Use and Privacy',
+                      'Terms and Conditions',
                       textAlign: TextAlign.left,
                       style: _drawerFont,
                     ), 
@@ -301,7 +308,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   }
   
   /// Transfers user to the ViewMore Ssreen
-  void _showViewMore(int i, String name, String value, String initial, String last, var chart) async {
+  void _showViewMore(String name) async {
     await Navigator.push(context, MaterialPageRoute(builder: 
       (context) => MoreScreen(name: name)));
     _updateCounters();
@@ -353,7 +360,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     }
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: (Platform.isAndroid) ? Colors.white.withAlpha(230) : Colors.white.withAlpha(210),
+      backgroundColor: (Platform.isAndroid) ? Colors.white.withAlpha(230) : Colors.white.withAlpha(230),
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
         child: new Row(
@@ -368,7 +375,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                 _showBottomSheet();
               },
             ),
-            IconButton(
+            (tileCount != 0)
+            ? IconButton(
               color: Colors.black.withOpacity(.75),
               tooltip: 'Increment all counters',
               icon: Icon(Icons.update),
@@ -385,6 +393,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                 _incrementAll();
               },
             )
+            : SizedBox()
           ],
         ),
       ),
@@ -410,66 +419,60 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
+              title: new Text(
+                "Day Counter",
+                style: TextStyle(
+                  letterSpacing: .7,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white
+                ),
+              ),
               elevation: (Platform.isAndroid) ? 4 : 0,
-              expandedHeight: 300,
               flexibleSpace: FlexibleSpaceBar(
                 collapseMode: CollapseMode.parallax,
                 centerTitle: true,
-                title: Text(
-                  "Day Counter",
-                  style: TextStyle(
-                    fontSize: 25,
-                    letterSpacing: .8,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white
-                  ),
-                ),
-                background: Image.network(
-                  "https://storage.googleapis.com/prospectusoft.com/images/cover.jpg",
-                  fit: BoxFit.cover,
-                )
               ),
             ),
           ];
         },
         body: RefreshIndicator( // When the user drags to refresh all counters
-        child: _buildCounters(),
-        onRefresh: () {
-          final snackbar = SnackBar(
-            content: Text(
-              'Trying to increment all counters'
-            ),
-            duration: Duration(
-              seconds: 2
-            ),
-          );
-          _scaffoldKey.currentState.showSnackBar(snackbar);
-          return _incrementAll();
-        }),
+          child: _buildCounters(),
+          onRefresh: () {
+            final snackbar = SnackBar(
+              content: Text(
+                'Trying to increment all counters'
+              ),
+              duration: Duration(
+                seconds: 2
+              ),
+            );
+            _scaffoldKey.currentState.showSnackBar(snackbar);
+            return _incrementAll();
+          }
+        ),
       )
     );
   }
 
   Widget _buildCounters() {
+    // If the counters are being loaded still
+    if (!_countersLoaded) {
+      return Center (
+        child: CircularProgressIndicator(),
+      );
+    }
     if (tileCount == 0) {
-      return ListView(
-        children: <Widget>[
-          SizedBox(
-            height: 50,
+      return Center (
+        child: Text(
+          "ADD A COUNTER TO GET STARTED",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 20,
+            letterSpacing: .8,
+            fontWeight: FontWeight.w700,
+            color: Colors.green
           ),
-          ListTile(
-            title: Text(
-              "Add a counter to get started",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
-                letterSpacing: .8,
-                fontWeight: FontWeight.w600,
-                color: Colors.black.withOpacity(.75)
-              ),
-            ),
-          )
-        ],
+        ),
       );
     }
     return ListView.builder(
@@ -478,14 +481,19 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       itemBuilder: (context, i){
         if (queryResult != null && queryResult.length> 0 && i < queryResult.length){
           var row = queryResult[i];
-          return _buildCard(i, row['name'], row['value'], row['initial'], row['last']);
+          
+          // Converting the setting switches from integers to booleans
+          bool f = (row['fSwitch'] == 1) ? true : false;
+          bool s = (row['sSwitch'] == 1) ? true : false;
+          
+          return _buildCard(i, row['name'], row['value'], row['initial'], row['last'], f, s);
         }
         return null;
       }
     );
   }
   
-  Widget _buildCard(int i, String name, String value, String initial, String last) {
+  Widget _buildCard(int i, String name, String value, String initial, String last, bool f, bool s) {
     // In case flags have not been loaded yet
     var dataBackup;
     if (i >= dataLists.length) {
@@ -584,7 +592,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                   onSelected: (v) {
                     switch (v) {
                       case 'red': _showFlags(name); break;
-                      case 'edit': _editCounter(name, value, initial, last); break;
+                      case 'edit': _editCounter(name, value, initial, last, f, s); break;
                       case 'delete': {
                         common.showDeleteDialog(context, db, name).then((v) {
                           if (v)
@@ -599,7 +607,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           ),
           
           // ------------------------------ Line Chart ----------------------------------------------
-          Container(
+          (f)
+          ? Container(
             color: Colors.black.withAlpha(5),
             child: Padding(
               padding: EdgeInsets.fromLTRB(14, 8, 8, 8),
@@ -613,10 +622,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                 }
               )
             ) 
-          ),
+          )
+          : SizedBox(),
           
+          
+          // -------------------------------- Schedule -----------------------------------------
           //TODO
-          (name == " ") ? ListTile(
+          (s)
+          ? ListTile(
               contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
               title: Text(
                 "Cheat Days will go here",
@@ -627,46 +640,58 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                   fontWeight: FontWeight.bold
                 ),
               ),
-            ) : SizedBox(),
+          )
+          : SizedBox(),
             
           // --------------------------------- Action buttons in the card --------------------------
           ButtonTheme.bar(
             alignedDropdown: true,
             child: ListTile(
-              leading: (Platform.isAndroid)
-              ? FlatButton(
-                child: const Text(
-                  'VIEW MORE',
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    letterSpacing: 1,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.green
-                  )
-                ),
-                onPressed: () { 
-                  _showViewMore(i, name, value, initial, last, chart);
-                },
-              )
-              : CupertinoButton (
-                child: const Text(
-                  'VIEW MORE',
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    letterSpacing: 1,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.green
-                  )
-                ),
-                onPressed: () {
-                  _showViewMore(i, name, value, initial, last, chart);
-                },
+              leading: (f || s)
+              ? (Platform.isAndroid)
+                ? FlatButton(
+                  child: const Text(
+                    'VIEW MORE',
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green
+                    )
+                  ),
+                  onPressed: () { 
+                    _showViewMore(name);
+                  },
+                )
+                : CupertinoButton (
+                  child: const Text(
+                    'VIEW MORE',
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green
+                    )
+                  ),
+                  onPressed: () {
+                    _showViewMore(name);
+                  },
+                )
+              : Text(
+                "Keep going!",
+                style: TextStyle(
+                  fontSize: 14.0,
+                  letterSpacing: 1,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.green
+                )
               ),
               trailing: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  IconButton(
+                  (f)
+                  ? IconButton(
                     icon: Icon(
                       Icons.outlined_flag,
                       color: Colors.red
@@ -694,7 +719,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                         textColor: Colors.white,
                       );
                     },
-                  ),
+                  )
+                  : SizedBox(),
                   IconButton(
                     icon: Icon(
                       Icons.add_circle_outline,

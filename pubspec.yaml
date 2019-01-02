@@ -53,6 +53,7 @@ flutter:
   
   assets:
     - assets/res/terms.txt
+    - assets/res/header.jpg 
     
     
   # The following line ensures that the Material Icons font is

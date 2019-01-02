@@ -1,9 +1,11 @@
 .DS_Store
 .dart_tool/
 
+.android/key.properties
+
 .packages
 .pub/
 
-build/
+.build/
 
 .flutter-plugins

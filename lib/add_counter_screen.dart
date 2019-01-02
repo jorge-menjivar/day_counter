@@ -33,6 +33,9 @@ class AddCounterState extends State<AddCounterScreen> {
 
   String modifiedDate;
   String modifiedRedable;
+  
+  bool f = true;
+  bool s = false;
 
   @override
   void initState(){
@@ -87,12 +90,12 @@ class AddCounterState extends State<AddCounterScreen> {
         if (modifiedDate != null && DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate)).day != today.day){
           var lastFormatted = DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate));
           var v = DateTime.now().difference(lastFormatted).inDays;
-          await counterDatabase.addToDb(db, name, v.toString(), modifiedDate, last.toString());
+          await counterDatabase.addToDb(db, name, v.toString(), modifiedDate, last.toString(), f, false);
           print("initial = ${DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate)).hour}");
           print("last = ${DateTime.fromMillisecondsSinceEpoch(last).hour}");
         }
         else {
-          await counterDatabase.addToDb(db, name, "0", initial.toString(), last.toString());
+          await counterDatabase.addToDb(db, name, "0", initial.toString(), last.toString(), f, false);
           print("initial = ${DateTime.fromMillisecondsSinceEpoch(initial).hour}");
           print("last = ${DateTime.fromMillisecondsSinceEpoch(last).hour}");
         }
@@ -215,14 +218,39 @@ class AddCounterState extends State<AddCounterScreen> {
                     }
                   })
                 ),
-                new Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                  ],
+                
+                // --------------------------------------- Counter Settngs -----------------------------------
+                new ListTile(
+                  leading: Icon(
+                    Icons.flag,
+                    color: Colors.red
+                  ),
+                  title: Text (
+                    "Allow Red Flags"
+                  ),
+                  trailing:
+                  (Platform.isAndroid)
+                  ? Switch(
+                    value: f,
+                    onChanged: (v) {
+                      f = v;
+                      setState(() {});
+                    }
+                  )
+                  : CupertinoSwitch(
+                    value: f,
+                    onChanged: (v) {
+                      f = v;
+                      setState(() {});
+                    }
+                  ),
                 ),
                 new SizedBox(
                   height: 48.0,
                 ),
+                
+                
+                // ------------------------------------ Buttons -------------------------------------------
                 (Platform.isAndroid)
                 ? new RaisedButton(
                   shape: RoundedRectangleBorder(

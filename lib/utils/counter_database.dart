@@ -15,7 +15,7 @@ class CounterDatabase {
     // Get a location using path_provider
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'Counters');
-    return await openDatabase(path, version: 1,
+    return await openDatabase(path, version: 2,
       onCreate: (Database db, int version) async {
         // When creating the db, create the table
         await db.execute(
@@ -23,22 +23,35 @@ class CounterDatabase {
                 "${Counter.dbName} TEXT PRIMARY KEY, "
                 "${Counter.dbValue} TEXT, "
                 "${Counter.dbInitial} TEXT, "
-                "${Counter.dbLast} TEXT "
+                "${Counter.dbLast} TEXT , "
+                "${Counter.dbFSwitch} INTEGER , "
+                "${Counter.dbSSwitch} INTEGER "
                 ")");
       });
   }
 
   /// Add new row to databse
-  Future <int> addToDb(Database db, String name, String value, String initial, String last) async{
+  Future <int> addToDb(Database db, String name, String value, String initial, String last, bool f, bool s) async{
+    int fInt, sInt;
+    f ? fInt = 1 : fInt = 0;
+    s ? sInt = 1 : sInt = 0;
     return await db.rawInsert(
           'INSERT INTO '
-              'Counters(${Counter.dbName}, ${Counter.dbValue}, ${Counter.dbInitial}, ${Counter.dbLast})'
-              ' VALUES("$name", "$value", "$initial", "$last")');
+              'Counters(${Counter.dbName}, ${Counter.dbValue}, ${Counter.dbInitial}, ${Counter.dbLast}, ${Counter.dbFSwitch}, ${Counter.dbSSwitch})'
+              ' VALUES("$name", "$value", "$initial", "$last", $fInt, $sInt)');
   }
 
   /// Update row in database
   Future<int> updateCounter(Database db, String name, String value, String last) async {
     return await db.rawUpdate('UPDATE Counters SET ${Counter.dbValue} = "$value", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
+  }
+  
+  /// Update setting switches in database
+  Future<int> updateCounterSettings(Database db, String name, bool f, bool s) async {
+    int fInt, sInt;
+    f ? fInt = 1 : fInt = 0;
+    s ? sInt = 1 : sInt = 0;
+    return await db.rawUpdate('UPDATE Counters SET ${Counter.dbFSwitch} = $fInt, ${Counter.dbSSwitch} = $sInt WHERE ${Counter.dbName} = "$name"');
   }
 
   /// Update the initial time for the row in database

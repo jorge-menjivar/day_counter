@@ -20,7 +20,7 @@ class GapAverageDatabase {
         await db.execute(
             "CREATE TABLE GA ("
                 "${GapAverage.dbDate} TEXT PRIMARY KEY, "
-                "${GapAverage.dbAverage} DOUBLE "
+                "${GapAverage.dbAverage} REAL "
                 ")");
       });
   }
@@ -30,7 +30,7 @@ class GapAverageDatabase {
     return await db.rawInsert(
           'INSERT INTO '
               'GA (${GapAverage.dbDate}, ${GapAverage.dbAverage})'
-              ' VALUES("$date", "$average)');
+              ' VALUES("$date", "$average")');
   }
 
   /// Get map of the desired searched item

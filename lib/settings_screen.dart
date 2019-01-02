@@ -422,7 +422,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
                 ),
               ),
               new Divider(),
-
+              /*
               // --------------------------BACKUPS--------------------------
               new ListTile(
                 leading: new Text(
@@ -464,6 +464,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
                   style: _settingTextStyle,
                 ),
               ),
+              */
             ],
           )
         ),
