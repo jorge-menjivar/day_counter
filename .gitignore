@@ -2,9 +2,12 @@
 .dart_tool/
 .packages
 .flutter-plugins
+.idea
+.vscode
 
 android/key.properties
 
+test/
 pub/
 
 build/
