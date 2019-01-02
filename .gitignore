@@ -1,11 +1,12 @@
 .DS_Store
 .dart_tool/
+.packages
+.flutter-plugins
 
 android/key.properties
 
-.packages
 pub/
 
 build/
 
-.flutter-plugins
+
