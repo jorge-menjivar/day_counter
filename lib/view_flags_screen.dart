@@ -147,12 +147,12 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
       case 11: month = "November"; break;
       case 12: month = "December"; break;
     }
-    String redableDate = "$month ${dateEpoch.day}, ${dateEpoch.year}";
+    String readableDate = "$month ${dateEpoch.day}, ${dateEpoch.year}";
     
     return ListTile(
       contentPadding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       title: Text(
-        redableDate,
+        readableDate,
         textAlign: TextAlign.left,
         
       ),

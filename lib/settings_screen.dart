@@ -28,7 +28,7 @@ class SettingsState extends State<SettingsScreen> with WidgetsBindingObserver{
   // Setting variables
   TimeOfDay reminderTime;
   TimeOfDay defaultTime = new TimeOfDay(
-    hour: 20,
+    hour: 21,
     minute: 00,
   );
   bool reminder = true;

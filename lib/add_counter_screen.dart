@@ -87,7 +87,7 @@ class AddCounterState extends State<AddCounterScreen> {
         var initial = last;
 
         // If the date has been modified and is not set to today. Otherwise we use the default code
-        if (modifiedDate != null && DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate)).day != today.day){
+        if (modifiedDate != null && DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate)) != today){
           var lastFormatted = DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate));
           var v = DateTime.now().difference(lastFormatted).inDays;
           await counterDatabase.addToDb(db, name, v.toString(), modifiedDate, last.toString(), f, false);

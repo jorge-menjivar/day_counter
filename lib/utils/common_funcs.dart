@@ -30,7 +30,7 @@ class CommonFunctions {
     String reminderString = await storage.read(key: "reminder");
     
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-    var initializationSettingsAndroid = new AndroidInitializationSettings('ic_notifications_black_24dp');
+    var initializationSettingsAndroid = new AndroidInitializationSettings('ic_noti');
     
     var initializationSettingsIOS = new IOSInitializationSettings();
     
@@ -46,8 +46,10 @@ class CommonFunctions {
     if (reminderString == 'true' || reminderString == null) {
       
       var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
-        '1', 'Reminder', 'Daily reminder to keep you on track',
-        importance: Importance.High, priority: Priority.High
+        '1', 'Daily Reminder', 'Daily reminder to keep you on track',
+        importance: Importance.High,
+        priority: Priority.High,
+        color: Colors.green
       );
       
       var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
@@ -64,7 +66,7 @@ class CommonFunctions {
         );
       }
       var time;
-      (timeString == null) ? time = new Time(20, 0, 0) : time = new Time(reminderTime.hour, reminderTime.minute, 0);
+      (timeString == null) ? time = new Time(21, 0, 0) : time = new Time(reminderTime.hour, reminderTime.minute, 0);
       
       await flutterLocalNotificationsPlugin.showDailyAtTime(
         0,

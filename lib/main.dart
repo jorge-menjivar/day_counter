@@ -8,6 +8,7 @@ import 'edit_screen.dart';
 import 'view_more.dart';
 import 'terms.dart';
 import 'credits.dart';
+import 'guide_screen.dart';
 
 // Utils
 import 'package:fluttertoast/fluttertoast.dart';
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Day Counter',
+      title: 'Animo',
       theme: new ThemeData(
         primarySwatch: Colors.green,
         canvasColor: Colors.white,
@@ -66,6 +67,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
 
   // If app is pin protected
   bool secured = false;
+  bool _firstTime = true;
   String pin;
   final storage = new FlutterSecureStorage();
 
@@ -86,6 +88,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         DeviceOrientation.portraitUp
     ]);
     WidgetsBinding.instance.addObserver(this);
+    _checkFirstTime();
     _loadPin();
     common.setUpNotifications();
     _initDb();
@@ -100,6 +103,20 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+  
+  /// Checks if the user needs to go through the guide or not
+  void _checkFirstTime() async{
+    String boolString;
+    boolString = await storage.read(key: "firstTime");
+    
+    // If there is no value stored in phone because it is first time.
+    if (boolString == null) {
+      await Navigator.push(context, MaterialPageRoute(builder:(context) => GuideScreen()));
+      
+      // Updating value meaning that the user went through the guide.
+      storage.write(key: "firstTime", value: "false");
+    }
   }
   
   /// Load Pin from secure storage
@@ -204,7 +221,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                 children: <Widget>[
                   new ListTile(
                     title: Text(
-                      'Day Counter',
+                      'Animo',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                         fontSize: 20.0,
@@ -245,6 +262,21 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsScreen()));
+                    },
+                  ),
+                  new ListTile(
+                    leading: new Icon(
+                      Icons.help,
+                      color: Colors.black.withOpacity(.75)
+                    ),
+                    title: Text(
+                      'Guide',
+                      textAlign: TextAlign.left,
+                      style: _drawerFont,
+                    ), 
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder:(context) => GuideScreen()));
                     },
                   ),
                   /* new ListTile(
@@ -351,7 +383,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           codeLength: 4,
           onCodeEntered: (code) {
             //callback after full code has been entered
-            if (code.toString() == pin) { //PIN has been succesfully entered
+            if (code.toString() == pin) { //PIN has been successfully entered
               setState(() {secured = false;});
             }
           },
@@ -360,7 +392,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     }
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: (Platform.isAndroid) ? Colors.white.withAlpha(230) : Colors.white.withAlpha(230),
+      backgroundColor: (Platform.isAndroid) ? Colors.white.withAlpha(240) : Colors.white.withAlpha(240),
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
         child: new Row(
@@ -381,7 +413,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
               tooltip: 'Increment all counters',
               icon: Icon(Icons.update),
               onPressed:() {
-                final snackbar = SnackBar(
+                final snackBar = SnackBar(
                   content: Text(
                     'Trying to increment all counters'
                   ),
@@ -389,7 +421,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                     seconds: 2
                   ),
                 );
-                _scaffoldKey.currentState.showSnackBar(snackbar);
+                _scaffoldKey.currentState.showSnackBar(snackBar);
                 _incrementAll();
               },
             )
@@ -400,7 +432,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton.extended(
         elevation: (Platform.isAndroid) ? 4 : 0,
-        tooltip: 'Add new Counter to the screen',
+        tooltip: 'Add new counter to the screen',
         icon: new Icon(
           Icons.add,
         ),
@@ -420,7 +452,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           return <Widget>[
             SliverAppBar(
               title: new Text(
-                "Day Counter",
+                "Animo",
                 style: TextStyle(
                   letterSpacing: .7,
                   fontWeight: FontWeight.w600,
@@ -438,7 +470,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         body: RefreshIndicator( // When the user drags to refresh all counters
           child: _buildCounters(),
           onRefresh: () {
-            final snackbar = SnackBar(
+            final snackBar = SnackBar(
               content: Text(
                 'Trying to increment all counters'
               ),
@@ -446,7 +478,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                 seconds: 2
               ),
             );
-            _scaffoldKey.currentState.showSnackBar(snackbar);
+            _scaffoldKey.currentState.showSnackBar(snackBar);
             return _incrementAll();
           }
         ),
@@ -728,7 +760,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                     ),
                     iconSize: 30,
                     onPressed: () async {
-                      final snackbar = SnackBar(
+                      final snackBar = SnackBar(
                         content: Text(
                           'Trying to increment $name'
                         ),
@@ -736,7 +768,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                           seconds: 2
                         ),
                       );
-                      _scaffoldKey.currentState.showSnackBar(snackbar);
+                      _scaffoldKey.currentState.showSnackBar(snackBar);
                       await common.incrementCounter(db, name, value, last);
                       _updateCounters();
                     }
