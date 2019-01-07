@@ -31,8 +31,8 @@ class AddCounterState extends State<AddCounterScreen> {
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
 
-  String modifiedDate;
-  String modifiedRedable;
+  int modifiedDate;
+  String modifiedReadable;
   
   bool f = true;
   bool s = false;
@@ -57,7 +57,7 @@ class AddCounterState extends State<AddCounterScreen> {
       case 11: month = "November"; break;
       case 12: month = "December"; break;
     }
-    modifiedRedable = "$month ${now.day}, ${now.year}";
+    modifiedReadable = "$month ${now.day}, ${now.year}";
   }
 
     @override
@@ -87,15 +87,15 @@ class AddCounterState extends State<AddCounterScreen> {
         var initial = last;
 
         // If the date has been modified and is not set to today. Otherwise we use the default code
-        if (modifiedDate != null && DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate)) != today){
-          var lastFormatted = DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate));
+        if (modifiedDate != null && DateTime.fromMillisecondsSinceEpoch(modifiedDate) != today){
+          var lastFormatted = DateTime.fromMillisecondsSinceEpoch(modifiedDate);
           var v = DateTime.now().difference(lastFormatted).inDays;
-          await counterDatabase.addToDb(db, name, v.toString(), modifiedDate, last.toString(), f, false);
-          print("initial = ${DateTime.fromMillisecondsSinceEpoch(int.parse(modifiedDate)).hour}");
+          await counterDatabase.addToDb(db, name, v, modifiedDate, last, f, false);
+          print("initial = ${DateTime.fromMillisecondsSinceEpoch(modifiedDate).hour}");
           print("last = ${DateTime.fromMillisecondsSinceEpoch(last).hour}");
         }
         else {
-          await counterDatabase.addToDb(db, name, "0", initial.toString(), last.toString(), f, false);
+          await counterDatabase.addToDb(db, name, 0, initial, last, f, false);
           print("initial = ${DateTime.fromMillisecondsSinceEpoch(initial).hour}");
           print("last = ${DateTime.fromMillisecondsSinceEpoch(last).hour}");
         }
@@ -115,7 +115,7 @@ class AddCounterState extends State<AddCounterScreen> {
   }
 
   Future <void> _modifyDate(DateTime v) async {
-    modifiedDate = v.millisecondsSinceEpoch.toString();
+    modifiedDate = v.millisecondsSinceEpoch;
 
     String month;
     switch (v.month) {
@@ -133,7 +133,7 @@ class AddCounterState extends State<AddCounterScreen> {
       case 12: month = "December"; break;
     }
 
-    setState(() {modifiedRedable = "$month ${v.day}, ${v.year}";});
+    setState(() {modifiedReadable = "$month ${v.day}, ${v.year}";});
     return;
   }
 
@@ -197,7 +197,7 @@ class AddCounterState extends State<AddCounterScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       new Text(
-                        modifiedRedable,
+                        modifiedReadable,
                         style: TextStyle(
                           // If switch is on display enabled
                           color: (modifiedDate != null) ? Colors.black87 : Colors.black45,

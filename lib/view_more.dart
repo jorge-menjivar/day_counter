@@ -33,9 +33,9 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
   String pName;
   
   // Initializing the variables before the query finishes
-  String pValue = "";
-  String pInitial = "";
-  String pLast = "";
+  int pValue = 0;
+  int pInitial = 0;
+  int pLast = 0;
   
   bool f = false, s = false;
   MoreState({
@@ -98,11 +98,13 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
       if(v.length == 0){
         Navigator.pop(context);
       }
-      var row = v[0];
-      pName = row['name'];
-      pValue = row['value'];
-      pInitial = row['initial'];
-      pLast = row['last'];
+      else {
+        var row = v[0];
+        pName = row['name'];
+        pValue = row['value'];
+        pInitial = row['initial'];
+        pLast = row['last'];
+      }
       
     });
     await _getData();
@@ -274,16 +276,16 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
               ),
               iconSize: 30,
               onPressed: () {
-                (pValue != "0") ?
+                (pValue != 0) ?
                 showDatePicker(
                   initialDate: new DateTime.now(),
-                  firstDate: new DateTime.fromMillisecondsSinceEpoch(int.parse(pInitial)).add(new Duration(days: 1)),
+                  firstDate: new DateTime.fromMillisecondsSinceEpoch(pInitial).add(new Duration(days: 1)),
                   lastDate: new DateTime.now(),
                   context: context,
                 ).then((v) async {
                   if (v != null) {
+                    await common.addRedFlagToDb(v, pName, pInitial);
                     _updateCounter();
-                    _getData();
                   }
                 }) : 
                 Fluttertoast.showToast(
@@ -334,7 +336,7 @@ class MoreState extends State<MoreScreen> with WidgetsBindingObserver{
                 ListTile(
                   contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
                   title: Text(
-                    pValue,
+                    pValue.toString(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 34.0,

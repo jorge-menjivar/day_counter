@@ -8,8 +8,8 @@ class Counter {
   static final dbFSwitch = "fSwitch";
   static final dbSSwitch = 'sSwitch';
 
-  String name, value, initial, last;
-  int fSwitch, sSwitch;
+  String name;
+  int value, initial, last, fSwitch, sSwitch;
 
   Counter({
     @required this.name,

@@ -9,7 +9,7 @@ import 'gap_average_model.dart';
 
 class GapAverageDatabase {
 
-  /// Initizalize this database and return it
+  /// Initialize this database and return it
   Future<Database> getDb(String id) async {
     assert (id != null && id != "");
     // Get a location using path_provider
@@ -19,28 +19,29 @@ class GapAverageDatabase {
       onCreate: (Database db, int version) async {
         await db.execute(
             "CREATE TABLE GA ("
-                "${GapAverage.dbDate} TEXT PRIMARY KEY, "
+                "${GapAverage.dbDate} INTEGER PRIMARY KEY, "
                 "${GapAverage.dbAverage} REAL "
                 ")");
       });
   }
 
-  /// Add new row to databse
-  Future <int> addToDb(Database db, String date, double average) async{
-    return await db.rawInsert(
+  /// Add new row to database
+  Future <int> addToDb(Database db, int date, double average) async{
+    await db.rawInsert(
           'INSERT INTO '
               'GA (${GapAverage.dbDate}, ${GapAverage.dbAverage})'
-              ' VALUES("$date", "$average")');
+              'VALUES ("$date", "$average")');
+    return 0;
   }
 
   /// Get map of the desired searched item
-  Future<List<Map>> getAverageQuery(Database db, String date) async{
+  Future<List<Map>> getAverageQuery(Database db, int date) async{
     var result = await db.rawQuery('SELECT * FROM GA WHERE ${GapAverage.dbDate} = "$date"');
     return result;
   }
 
   /// Delete requested date and average
-  Future<int> deleteRow(Database db, String date) async{
+  Future<int> deleteRow(Database db, int date) async{
     return db.rawDelete('DELETE FROM GA WHERE ${GapAverage.dbDate} = "$date"');
   }
 

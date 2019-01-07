@@ -15,7 +15,8 @@ import 'utils/flags_database.dart';
 
 
 class EditScreen extends StatefulWidget {
-  final String name, value, initial, last;
+  final String name;
+  final int value, initial, last;
   final bool f, s;
   EditScreen({
     @required this.name,
@@ -31,7 +32,8 @@ class EditScreen extends StatefulWidget {
 }
 
 class EditState extends State<EditScreen> {
-  final String pName, pValue, pInitial, pLast;
+  final String pName;
+  final int pValue, pInitial, pLast;
   bool f, s;
   EditState({
     @required this.pName, 
@@ -50,7 +52,7 @@ class EditState extends State<EditScreen> {
   CounterDatabase counterDatabase = new CounterDatabase();
   FlagsDatabase flagsDatabase = new FlagsDatabase();
 
-  String initialDate;
+  int initialDate;
   String modifiedRedable;
   
   CommonFunctions common = CommonFunctions();
@@ -60,7 +62,7 @@ class EditState extends State<EditScreen> {
     super.initState();
     _initDb();
     initialDate = pInitial;
-    var initial = DateTime.fromMillisecondsSinceEpoch(int.parse(pInitial));
+    var initial = DateTime.fromMillisecondsSinceEpoch(pInitial);
     String month;
     switch (initial.month) {
       case 1: month = "January"; break;
@@ -99,17 +101,17 @@ class EditState extends State<EditScreen> {
   void _updateCounter(String name) async{
     await counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0 || pName == name) {
-        var initial = DateTime.fromMillisecondsSinceEpoch(int.parse(initialDate));
+        var initial = DateTime.fromMillisecondsSinceEpoch(initialDate);
         int difference = DateTime.now().difference(initial).inDays;
 
         if (name == pName) {
-          await counterDatabase.updateCounterAndInitial(db, name, difference.toString(), initialDate, pLast);
+          await counterDatabase.updateCounterAndInitial(db, name, difference, initialDate, pLast);
           await counterDatabase.updateCounterSettings(db, name, f, s);
         }
 
         else {
           counterDatabase.deleteCounter(db, pName);
-          counterDatabase.addToDb(db, name, difference.toString(), initialDate, pLast, f, s);
+          counterDatabase.addToDb(db, name, difference, initialDate, pLast, f, s);
           flagsDatabase.renameDatabase(pName, name);
         }
 
@@ -131,7 +133,7 @@ class EditState extends State<EditScreen> {
   
   
   Future <void> _modifyDate(DateTime v) async {
-    initialDate = v.millisecondsSinceEpoch.toString();
+    initialDate = v.millisecondsSinceEpoch;
     String month;
     switch (v.month) {
       case 1: month = "January"; break;
@@ -224,14 +226,17 @@ class EditState extends State<EditScreen> {
                     ],
                   ),
                   onTap: () => showDatePicker(
-                    initialDate: new DateTime.fromMillisecondsSinceEpoch(int.parse(pInitial)),
+                    initialDate: new DateTime.fromMillisecondsSinceEpoch(pInitial),
                     firstDate: new DateTime.now().subtract(new Duration(days: 5000)),
                     lastDate: new DateTime.now(),
                     context: context,
-                  ).then((v) async => await _modifyDate(v))
+                  ).then((v) async {
+                      if (v != null)
+                        await _modifyDate(v);
+                    })
                 ),
                 
-                // --------------------------------------- Counter Settngs -----------------------------------
+                // --------------------------------------- Counter Settings -----------------------------------
                 new ListTile(
                   leading: Icon(
                     Icons.flag,
@@ -286,7 +291,7 @@ class EditState extends State<EditScreen> {
                           if(v) {
                             var now = DateTime.now();
                             var today = DateTime(now.year, now.month, now.day);
-                            initialDate = today.millisecondsSinceEpoch.toString();
+                            initialDate = today.millisecondsSinceEpoch;
                             _updateCounter(pName);
                             common.deleteFlagsDatabase(pName);
                           }
@@ -375,7 +380,7 @@ class EditState extends State<EditScreen> {
                           if(v) {
                             var now = DateTime.now();
                             var today = DateTime(now.year, now.month, now.day);
-                            initialDate = today.millisecondsSinceEpoch.toString();
+                            initialDate = today.millisecondsSinceEpoch;
                             _updateCounter(pName);
                             common.deleteFlagsDatabase(pName);
                           }

@@ -11,13 +11,15 @@ import 'flags_database.dart';
 
 class Algorithms {
   
+  final int daysInSchedule = 7;
+  
   //TODO round up doubles so they don't overflow
   
   GapAverageDatabase _gapAverageDatabase = GapAverageDatabase();
   FlagsDatabase _flagsDatabase = FlagsDatabase();
   
   /// Algorithm to get chart data from the red flags in database.
-  List<ProgressByDate> getDataList (dynamic results, String initial) {
+  List<ProgressByDate> getDataList (dynamic results, int initial) {
     
     const double penaltyValue = .2;
     const int minDayExtraPenalty = 5;
@@ -27,7 +29,7 @@ class Algorithms {
     List<ProgressByDate> data = new List<ProgressByDate>();
     
     // The day the counter was started
-    DateTime date1 = DateTime.fromMillisecondsSinceEpoch(int.parse(initial));
+    DateTime date1 = DateTime.fromMillisecondsSinceEpoch(initial);
     
     // Starting the data with the initial day as our first point.
     data.add(new ProgressByDate(day: 0, progress: 0, color: Colors.blue));
@@ -43,8 +45,8 @@ class Algorithms {
       
       var row = results[i];
       
-      // Gettin the next flag date from the database
-      date2 = DateTime.fromMillisecondsSinceEpoch(int.parse(row['date']));
+      // Getting the next flag date from the database
+      date2 = DateTime.fromMillisecondsSinceEpoch(row['date']);
       
       // The difference between the last flag and this flag.
       int difference = date2.difference(date1).inDays;
@@ -90,13 +92,14 @@ class Algorithms {
   
   
   
-  /// Machine Learning algorith that returns a schedule ([List] of [Tuple2]) for the user counter[name],
-  /// based on their flag patterns. The tuple represents range and amount.
+  /// Machine Learning algorithm that returns a schedule ([List] of [Tuple2]) for that represent a day
+  /// with flag if [bool] is [true]. And includes the number of flags in [int]
+  /// This is for the counter [name], and based on its flag patterns.
   /// Returns [null] if no flags were found.
-  Future<List<Tuple2<int, int>>> getSchedule(String name) async{
+  Future<List<Tuple2>> getSchedule(String name, int initial, int last) async{
     
     // A list of tuples or pairs representing range and amount
-    var schedule = List<Tuple2<int, int>>();
+    var schedule = List<Tuple2>();
     
     double average;
     double bias;
@@ -105,12 +108,10 @@ class Algorithms {
     double gap;
     
     // Getting the gap average for today as well as saving it to the gap average database.
-    average = await _computeAverage(name);
+    average = await _computeAverage(name, initial, last);
     
-    // User has not added a flag yet.
-    if (average == null) {
-      return null;
-    }
+    // Exit if the number of flags does not meet criteria
+    if (average == null) return null;
     
     Tuple2 aAndG = await _getAverageAndGround(name);
     
@@ -131,7 +132,9 @@ class Algorithms {
       gap = (dAbsolute * ground) + average;
     }
     
-    schedule = await _translateSchedule(gap, ground);
+    var rawSchedule = await _createSchedule(gap, ground);
+    
+    schedule = _translateSchedule(rawSchedule);
     
     return schedule;
   }
@@ -163,23 +166,26 @@ class Algorithms {
       sum += rAvg;
       
       // If time to start getting the ground variable
-      if (i >= query.length - 5 && i > 0) {
+      if (i >= query.length - 5) {
         
         // If dFg has not been initialized yet.
         if (dFG == -1) {
           dFG = i;
         }
         
-        var rowBef = query[i -1];
-        var aveBef = rowBef['average'];
-        
-        gSum += (rAvg - aveBef) / 1;
+        if (i != 0) {
+          var rowBef = query[i -1];
+          var aveBef = rowBef['average'];
+          
+          gSum += (rAvg - aveBef) / 1;
+        }
       }
       
       // If database does not have 30 days stored yet.
       if (i == query.length-1) {
         // Time to exit
         average = sum / query.length;
+        ground = gSum / (i - dFG);
         break;
       }
       
@@ -199,76 +205,148 @@ class Algorithms {
   
   /// Gets and saving the gap average for any days missing from database and returns the average for today
   /// Returns [null] if user has not added flags to this counter.
-  Future<double> _computeAverage(String name) async{
+  Future<double> _computeAverage(String name, int initial, int last) async{
     
     const int DAYS_TO_CONSIDER = 20;
     double average;
-    double sum;
+    double sum = 0;
+    
+    var now = DateTime.now();
+    var today = DateTime(now.year, now.month, now.day);
     
     Database flagsDb = await _flagsDatabase.getDb(name);
-    var query = await _flagsDatabase.getQueryDesc(flagsDb);
+    var flagsQuery = await _flagsDatabase.getQuery(flagsDb);
     
-    if (query.length == 0) {
+    if (flagsQuery.length < 5) {
       return null;
     }
     
     Database gapDb = await _gapAverageDatabase.getDb(name);
     var gapQuery = await _gapAverageDatabase.getQuery(gapDb);
     
+    var gapRow;
+    int missing;
+    
     // The last time an average was saved to database;
-    var gapRow = gapQuery[0];
-    DateTime lastSaved = DateTime.fromMillisecondsSinceEpoch(int.parse(gapRow['date']));
-    
-    // The number of averages that need to be added to the database
-    int missing = DateTime.now().difference(lastSaved).inDays;
-    
-    for (int j = missing - 1; j >= 0; j--) {
-      // The flags to take in consideration for this day;
-      int start = j;
-      int end = start + DAYS_TO_CONSIDER;
-      var row = query[start];
-      DateTime date1 = DateTime.fromMillisecondsSinceEpoch(int.parse(row['date']));
-      DateTime date2;
+    // TODO
+    if (gapQuery.length > 1000){
+      gapRow = gapQuery[0];
+      DateTime lastSaved = DateTime.fromMillisecondsSinceEpoch(gapRow['date']);
       
-      for (int i = start + 1; i < end; i++) {
-        row = query[i];
-        
-        // Gettin the next flag date from the database
-        date2 = DateTime.fromMillisecondsSinceEpoch(int.parse(row['date']));
-        
-        // The gap between the last flag and this flag.
-        int gap = date2.difference(date1).inDays;
-        sum += gap;
-        
-        date1 = date2;
-        
-        if (i == query.length-1) {
-          // Time to exit
-          average = sum / query.length;
-        }
-        
-        if (i == gap -1) {
-          average = sum / DAYS_TO_CONSIDER;
-        }
+      // The number of averages that need to be added to the database
+      missing = DateTime.now().difference(lastSaved).inDays;
+    }
+    
+    // If no last time found, then start from the beginning.
+    // TODO
+    else {
+      DateTime lastDate = today.subtract(Duration(days: 20));
+      
+      // The number of averages that need to be added to the database
+      missing = DateTime.now().difference(lastDate).inDays;
+    }
+    
+    for (int j = missing - 2; j >= 0; j--) {
+      // The days to take in consideration for this average;
+      int start = initial;
+      
+      var row;
+      
+      DateTime tempDate = today.subtract(Duration(days: 0));
+      var tempFlagQuery = await _flagsDatabase.getFlagQuery(flagsDb, tempDate.millisecondsSinceEpoch);
+      
+      if (tempFlagQuery.length == 1) {
+        start = 0;
+        row = tempFlagQuery[0];
+        break;
       }
       
-      // Getting the correct date for this average
-      DateTime day = DateTime.now().subtract(Duration(days: j));
+      var flags = 0;
+      if (row != null) {
+        DateTime date1 = DateTime.fromMillisecondsSinceEpoch(row['date']);
+        DateTime date2;
+        
+        for (int i = start + 1; i < j + DAYS_TO_CONSIDER; i++) {
+          
+          DateTime tempDate = today.subtract(Duration(days: i));
+          var tempFlagQuery = await _flagsDatabase.getFlagQuery(flagsDb, tempDate.millisecondsSinceEpoch);
+          
+          // If flag was found for this day
+          if (tempFlagQuery.length == 1) {
+            row = flagsQuery[i];
+            
+            // Getting the next flag date from the database
+            date2 = DateTime.fromMillisecondsSinceEpoch(row['date']);
+            
+            // The gap between the last flag and this flag.
+            int gap = date1.difference(date2).inDays;
+            sum += gap;
+            
+            date1 = date2;
+            
+            // If no more flags, time to exit
+            if (i == flagsQuery.length-1) {
+              // Time to exit
+              average = sum / flags;
+              break;
+            }
+            
+            // If everything went well, time to exit.
+            if (i == gap -1) {
+              average = sum / flags;
+              break;
+            }
+          }
+        }
       
-      // Saving to database
-      await _gapAverageDatabase.addToDb(gapDb, day.millisecondsSinceEpoch.toString(), average);
+        // Getting the correct date for this average
+        DateTime day = today.subtract(Duration(days: j));
+        
+        // Checking if the average has not been saved yet.
+        var tempGapQuery = await _gapAverageDatabase.getAverageQuery(gapDb, day.millisecondsSinceEpoch);
+        
+        // If needs to be replaced
+        if (tempGapQuery.length > 0){
+            
+          // Deleting previous
+          await _gapAverageDatabase.deleteRow(gapDb, day.millisecondsSinceEpoch);
+        }
+        
+        // Saving new
+        await _gapAverageDatabase.addToDb(gapDb, day.millisecondsSinceEpoch, average);
+      }
+      
+      // If no flags found for this day
+      else {
+        // Getting the correct date for this average
+        DateTime day = today.subtract(Duration(days: j));
+        
+        // Checking if the average has not been saved yet.
+        var tempGapQuery = await _gapAverageDatabase.getAverageQuery(gapDb, day.millisecondsSinceEpoch);
+        
+        // If needs to be replaced
+        if (tempGapQuery.length > 0){
+            
+          // Deleting previous
+          await _gapAverageDatabase.deleteRow(gapDb, day.millisecondsSinceEpoch);
+        }
+        
+        // Saving new
+        await _gapAverageDatabase.addToDb(gapDb, day.millisecondsSinceEpoch, average);
+      }
     }
+    
+    await flagsDb.close();
+    await gapDb.close();
     return average;
   }
   
-  /// Transalates the given [gap] and ground [values] into a readable schedule for next week
-  Future<List<Tuple2<int, int>>> _translateSchedule(double gap, double ground) async{
+  /// Makes the given [gap] and ground [values] into a readable schedule for next week
+  Future<List<Tuple2<int, int>>> _createSchedule(double gap, double ground) async{
     var schedule = List<Tuple2<int, int>>();
     
-    const int DAYS_IN_SCHEDULE = 7;
-    
     // The number of flags that fit in this schedule
-    int flags = (DAYS_IN_SCHEDULE ~/ gap).toInt();
+    int flags = (daysInSchedule ~/ gap).toInt();
     
     // If ground is negative put ranges as close as possible
     if (ground < 0) {
@@ -311,5 +389,29 @@ class Algorithms {
       }
     }
     return schedule;
+  }
+  
+  
+  /// Translates the given raw schedule and makes it into a neat list that specifies if
+  /// there is a flag for each day of the week.
+  List<Tuple2> _translateSchedule(List<Tuple2<int, int>> schedule) {
+    // Converting the passed schedule list of tuples so it is easier for the widget to understand.
+    var days = List<Tuple2>();
+    
+    // For every range in the schedule
+    for (var v in schedule) {
+      
+      // For every day in the range
+      for (int i = 0; i < v.item1; i++) {
+        (v.item2 == 0) ? days.add(Tuple2(false, v.item2)) : days.add(Tuple2(true, v.item2));
+      }
+    }
+    
+    // Add the remaining days the schedule did not include
+    while (days.length < 7) {
+      days.add(Tuple2(false, 0));
+    }
+    
+    return days;
   }
 }

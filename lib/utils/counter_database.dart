@@ -21,17 +21,17 @@ class CounterDatabase {
         await db.execute(
             "CREATE TABLE Counters ("
                 "${Counter.dbName} TEXT PRIMARY KEY, "
-                "${Counter.dbValue} TEXT, "
-                "${Counter.dbInitial} TEXT, "
-                "${Counter.dbLast} TEXT , "
-                "${Counter.dbFSwitch} INTEGER , "
+                "${Counter.dbValue} INTEGER, "
+                "${Counter.dbInitial} INTEGER, "
+                "${Counter.dbLast} INTEGER, "
+                "${Counter.dbFSwitch} INTEGER, "
                 "${Counter.dbSSwitch} INTEGER "
                 ")");
       });
   }
 
   /// Add new row to databse
-  Future <int> addToDb(Database db, String name, String value, String initial, String last, bool f, bool s) async{
+  Future <int> addToDb(Database db, String name, int value, int initial, int last, bool f, bool s) async{
     int fInt, sInt;
     f ? fInt = 1 : fInt = 0;
     s ? sInt = 1 : sInt = 0;
@@ -42,7 +42,7 @@ class CounterDatabase {
   }
 
   /// Update row in database
-  Future<int> updateCounter(Database db, String name, String value, String last) async {
+  Future<int> updateCounter(Database db, String name, int value, int last) async {
     return await db.rawUpdate('UPDATE Counters SET ${Counter.dbValue} = "$value", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
   }
   
@@ -55,7 +55,7 @@ class CounterDatabase {
   }
 
   /// Update the initial time for the row in database
-  Future<int> updateCounterAndInitial(Database db, String name, String value, String initial, String last) async {
+  Future<int> updateCounterAndInitial(Database db, String name, int value, int initial, int last) async {
     return await db.rawUpdate('UPDATE Counters SET ${Counter.dbValue} = "$value", ${Counter.dbInitial} = "$initial", ${Counter.dbLast} = "$last" WHERE ${Counter.dbName} = "$name"');
   }
 

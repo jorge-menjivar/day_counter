@@ -80,13 +80,13 @@ class CommonFunctions {
   
   
   /// Adds flag with the given date to the database.
-  Future<void> addRedFlagToDb (DateTime dateTime, String name, String initial) async{
+  Future<void> addRedFlagToDb (DateTime dateTime, String name, int initial) async{
     assert (dateTime != null);
     // The initial date of the counter
-    DateTime initDate = DateTime.fromMillisecondsSinceEpoch(int.parse(initial));
+    DateTime initDate = DateTime.fromMillisecondsSinceEpoch(initial);
     
     // The date passed from the date picker
-    String date = dateTime.millisecondsSinceEpoch.toString();
+    int date = dateTime.millisecondsSinceEpoch;
     
     // Setting the millisecondsSinceEpoch to the beginning of the day of today.
     var today = DateTime(
@@ -98,7 +98,7 @@ class CommonFunctions {
       var d = DateTime(
         dateTime.year, dateTime.month, dateTime.day
       );
-      date = d.millisecondsSinceEpoch.toString();
+      date = d.millisecondsSinceEpoch;
     }
     
     int initDif = today.difference(initDate).inDays;
@@ -146,9 +146,9 @@ class CommonFunctions {
   
   
   /// Calculate if days should be added to the given counter [name]
-  Future<void> incrementCounter(Database db, String name, String valueString, String lastString) async{
-    DateTime _last = DateTime.fromMillisecondsSinceEpoch(int.parse(lastString));
-    int counter = int.parse(valueString);
+  Future<void> incrementCounter(Database db, String name, int value, int last) async{
+    DateTime _last = DateTime.fromMillisecondsSinceEpoch(last);
+    int counter = value;
     var now = DateTime.now();
     var today = DateTime(now.year, now.month, now.day);
     
@@ -180,7 +180,7 @@ class CommonFunctions {
     
     // Saving update to device
     var todayEpoch = today.millisecondsSinceEpoch;
-    await counterDatabase.updateCounter(db, name, counter.toString(), todayEpoch.toString());
+    await counterDatabase.updateCounter(db, name, counter, todayEpoch);
     
     print("last = ${DateTime.fromMillisecondsSinceEpoch(todayEpoch).hour}");
   }

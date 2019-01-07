@@ -19,6 +19,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'utils/algorithms.dart';
 import 'utils/common_funcs.dart';
 import 'package:flutter/services.dart';
+import 'package:tuple/tuple.dart';
 
 // Storage
 import 'package:sqflite/sqflite.dart';
@@ -63,11 +64,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
   FlagsDatabase flagsDatabase = new FlagsDatabase();
-  var dataLists = List<List<ProgressByDate>>();
+  var _dataLists = List<List<ProgressByDate>>();
+  var _schedules = List<List<Tuple2>>();
 
   // If app is pin protected
   bool secured = false;
-  bool _firstTime = true;
   String pin;
   final storage = new FlutterSecureStorage();
 
@@ -78,6 +79,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   
   bool _countersLoaded = false;
+  
 
   // TODO change settings in android manifest to allow backups
 
@@ -127,6 +129,20 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     }
   }
   
+  /// Gets the schedules for all the applicable cards and then updates the screen.
+  Future<void> _getSchedules() async{
+    for (int i =  0; i < queryResult.length; i++) {
+      var row = queryResult[i];
+      var name = row['name'];
+      var initial = row['name'];
+      var last = row['last'];
+      List<Tuple2> schedule = await _algorithms.getSchedule(name, initial, last);
+      // If the algorithm run successfully, add to the schedules list
+      if (schedule != null) _schedules.add(schedule);
+    }
+    setState(() {});
+  }
+  
   /// Initialize database
   void _initDb() async {
     await counterDatabase.getDb().then((res) async{
@@ -145,19 +161,19 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     for (int i = 0; i < size; i++) {
       var row = queryResult[i];
       String name = row['name'];
-      String initial = row['initial'];
+      int initial = row['initial'];
       await flagsDatabase.getDb(name).then((res) async {
         await flagsDatabase.getQuery(res).then((queryR) async {
           // Algorithm
           var data = _algorithms.getDataList(queryR, initial);
           
           // If the data is not yet part of the list then initialize it
-          if (i >= dataLists.length){
-            dataLists.add(data); 
+          if (i >= _dataLists.length){
+            _dataLists.add(data); 
           }
           // Otherwise just set its value to the appropriate place in the list
           else {
-            dataLists[i] = data;
+            _dataLists[i] = data;
           }
           
         });
@@ -177,7 +193,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   }
   
   /// Transfer user to Edit Counter screen
-  void _editCounter(String name, String value, String initial, String last, bool f, bool s) {
+  void _editCounter(String name, int value, int initial, int last, bool f, bool s) {
     Navigator.push(context, MaterialPageRoute(builder:
       (context) => EditScreen(name: name, value: value, initial: initial, last: last, f: f, s: s))
     ).then((v) async {
@@ -525,10 +541,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     );
   }
   
-  Widget _buildCard(int i, String name, String value, String initial, String last, bool f, bool s) {
+  Widget _buildCard(int i, String name, int value, int initial, int last, bool f, bool s) {
+    
     // In case flags have not been loaded yet
     var dataBackup;
-    if (i >= dataLists.length) {
+    if (i >= _dataLists.length) {
        dataBackup = [
         new ProgressByDate(day: 0, progress: 0, color: Colors.blue),
       ];
@@ -541,7 +558,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         domainFn: (ProgressByDate progressData, _) => progressData.day,
         measureFn: (ProgressByDate progressData, _) =>progressData.progress,
         colorFn: (ProgressByDate progressData, _) => progressData.color,
-        data: (i < dataLists.length) ? dataLists[i] : dataBackup,
+        data: (i < _dataLists.length) ? _dataLists[i] : dataBackup,
       ),
     ];
     
@@ -550,6 +567,20 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       series,
       animate: true,
     );
+    
+    // In case schedules have not been loaded yet
+    
+    var schedule = List<Tuple2>();
+    
+    if (_schedules.length > i){
+      schedule = _schedules[0];
+    }
+    else {
+      for (int i = 0; i < _algorithms.daysInSchedule; i++) {
+        schedule.add(Tuple2(false, 0));
+      }
+    }
+    
     
     return Card(
       color: (Platform.isAndroid) ? Colors.white : Colors.white,
@@ -564,7 +595,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
               ListTile(
                 contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
                 title: Text(
-                  value,
+                  value.toString(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 34.0,
@@ -660,20 +691,155 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           
           // -------------------------------- Schedule -----------------------------------------
           //TODO
-          (s)
-          ? ListTile(
-              contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-              title: Text(
-                "Cheat Days will go here",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold
-                ),
-              ),
-          )
-          : SizedBox(),
+          (s || true)
+          ? Container(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            color: Colors.blue.withAlpha(40),
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return new SizedBox(
+                  height: 60.0,
+                  width: constraints.maxWidth,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      SizedBox(
+                        height: constraints.maxWidth/8,
+                        width: constraints.maxWidth/8,
+                        child: RaisedButton(
+                          child: Text(
+                            (schedule[0].item1) ? schedule[0].item2 : "",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white
+                            )
+                          ),
+                          color: (schedule[0].item1)
+                          ? Colors.red : Colors.green,
+                          onPressed: () {},
+                        )
+                      ),
+                      SizedBox(width: constraints.maxWidth/8/6,),
+                      
+                      SizedBox(
+                        height: constraints.maxWidth/8,
+                        width: constraints.maxWidth/8,
+                        child: RaisedButton(
+                          child: Text(
+                            (schedule[1].item1) ? schedule[1].item2 : "",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white
+                            )
+                          ),
+                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                          color: (schedule[1].item1)
+                          ? Colors.red : Colors.green,
+                          onPressed: () {},
+                        ),
+                      ),
+                      SizedBox(width: constraints.maxWidth/8/6,),
+                      
+                      SizedBox(
+                        height: constraints.maxWidth/8,
+                        width: constraints.maxWidth/8,
+                        child: RaisedButton(
+                          child: Text(
+                            (schedule[2].item1) ? schedule[2].item2 : "",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white
+                            )
+                          ),
+                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                          color: (schedule[2].item1)
+                          ? Colors.red : Colors.green,
+                          onPressed: () {},
+                        ),
+                      ),
+                      SizedBox(width: constraints.maxWidth/8/6,),
+                      
+                      SizedBox(
+                        height: constraints.maxWidth/8,
+                        width: constraints.maxWidth/8,
+                        child: RaisedButton(
+                          child: Text(
+                            (schedule[3].item1) ? schedule[3].item2 : "",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white
+                            )
+                          ),
+                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                          color: (schedule[3].item1)
+                          ? Colors.red : Colors.green,
+                          onPressed: () {},
+                        ),
+                      ),
+                      SizedBox(width: constraints.maxWidth/8/6,),
+                      
+                      SizedBox(
+                        height: constraints.maxWidth/8,
+                        width: constraints.maxWidth/8,
+                        child: RaisedButton(
+                          child: Text(
+                            (schedule[4].item1) ? schedule[4].item2 : "",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white
+                            )
+                          ),
+                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                          color: (schedule[4].item1)
+                          ? Colors.red : Colors.green,
+                          onPressed: () {},
+                        ),
+                      ),
+                      SizedBox(width: constraints.maxWidth/8/6,),
+                      
+                      SizedBox(
+                        height: constraints.maxWidth/8,
+                        width: constraints.maxWidth/8,
+                        child: RaisedButton(
+                          child: Text(
+                            (schedule[5].item1) ? schedule[5].item2 : "",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white
+                            )
+                          ),
+                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                          color: (schedule[5].item1)
+                          ? Colors.red : Colors.green,
+                          onPressed: () {},
+                        ),
+                      ),
+                      SizedBox(width: constraints.maxWidth/8/6,),
+                      
+                      SizedBox(
+                        height: constraints.maxWidth/8,
+                        width: constraints.maxWidth/8,
+                        child: RaisedButton(
+                          child: Text(
+                            (schedule[6].item1) ? schedule[6].item2 : "",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white
+                            )
+                          ),
+                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                          color: (schedule[6].item1)
+                          ? Colors.red : Colors.green,
+                          onPressed: () {},
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            )
+          ): SizedBox(),
             
           // --------------------------------- Action buttons in the card --------------------------
           ButtonTheme.bar(
@@ -733,7 +899,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                       (value != "0") 
                       ? showDatePicker(
                         initialDate: new DateTime.now(),
-                        firstDate: new DateTime.fromMillisecondsSinceEpoch(int.parse(initial)).add(new Duration(days: 1)),
+                        firstDate: new DateTime.fromMillisecondsSinceEpoch(initial).add(new Duration(days: 1)),
                         lastDate: new DateTime.now(),
                         context: context,
                       ).then((v) async {

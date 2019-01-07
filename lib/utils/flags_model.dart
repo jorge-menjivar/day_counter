@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 class Flags {
   static final dbDate = "date";
 
-  String date;
+  int date;
 
   Flags({
     @required this.date,

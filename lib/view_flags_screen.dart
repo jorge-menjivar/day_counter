@@ -59,7 +59,7 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
     });
   }
 
-  Future<void> _deleteFlag(String date) async{
+  Future<void> _deleteFlag(int date) async{
     await flagsDatabase.deleteFlag(db, date).then((v) async {
       Fluttertoast.showToast(
         msg: "Flag deleted",
@@ -108,7 +108,7 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
         if (queryResult != null && queryResult.length> 0 && index < queryResult.length){
           var row = queryResult[index];
 
-          String date = row['date'];
+          var date = row['date'];
           
           return _buildRow(date);
         }
@@ -130,8 +130,8 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
     );
   }
   
-  Widget _buildRow(String date) {
-    var dateEpoch = DateTime.fromMillisecondsSinceEpoch(int.parse(date));
+  Widget _buildRow(int date) {
+    var dateEpoch = DateTime.fromMillisecondsSinceEpoch(date);
     String month;
     switch (dateEpoch.month) {
       case 1: month = "January"; break;

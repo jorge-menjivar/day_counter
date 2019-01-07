@@ -20,13 +20,13 @@ class FlagsDatabase {
       onCreate: (Database db, int version) async {
         await db.execute(
             "CREATE TABLE Flags ("
-                "${Flags.dbDate} TEXT PRIMARY KEY "
+                "${Flags.dbDate} INTEGER PRIMARY KEY "
                 ")");
       });
   }
 
   /// Add new row to databse
-  Future <int> addToDb(Database db, String date) async{
+  Future <int> addToDb(Database db, int date) async{
     return await db.rawInsert(
           'INSERT INTO '
               'Flags(${Flags.dbDate})'
@@ -34,13 +34,13 @@ class FlagsDatabase {
   }
 
   /// Get map of the desired searched item
-  Future<List<Map>> getFlagQuery(Database db, String date) async{
+  Future<List<Map>> getFlagQuery(Database db, int date) async{
     var result = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} = "$date"');
     return result;
   }
 
   /// Delete requested flag
-  Future<int> deleteFlag(Database db, String date) async{
+  Future<int> deleteFlag(Database db, int date) async{
     return db.rawDelete('DELETE FROM Flags WHERE ${Flags.dbDate} = "$date"');
   }
 
