@@ -12,13 +12,17 @@ import 'package:sqflite/sqflite.dart';
 import 'counter_database.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'flags_database.dart';
+import 'gap_average_database.dart';
+import 'schedules_database.dart';
 
 class CommonFunctions {
   
   final storage = new FlutterSecureStorage();
   
-  CounterDatabase counterDatabase = CounterDatabase();
-  FlagsDatabase flagsDatabase = FlagsDatabase();
+  CounterDatabase _counterDatabase = CounterDatabase();
+  FlagsDatabase _flagsDatabase = FlagsDatabase();
+  GapAverageDatabase _gapAverageDatabase = GapAverageDatabase();
+  SchedulesDatabase _schedulesDatabase = SchedulesDatabase();
   
   
   /// Initialize notification system
@@ -79,9 +83,10 @@ class CommonFunctions {
   }
   
   
-  /// Adds flag with the given date to the database.
-  Future<void> addRedFlagToDb (DateTime dateTime, String name, int initial) async{
+  /// Adds flag with the given date to the database. Returns whether all Schedules should be rebuilt.
+  Future<bool> addRedFlagToDb (DateTime dateTime, String name, int initial) async{
     assert (dateTime != null);
+    bool rebuild = true;
     // The initial date of the counter
     DateTime initDate = DateTime.fromMillisecondsSinceEpoch(initial);
     
@@ -95,6 +100,8 @@ class CommonFunctions {
     
     // Setting the millisecondsSinceEpoch to the beginning of the day if the flag is for today.
     if (DateTime.now().difference(dateTime).inDays == 0) {
+      // If the flag is for today. It is not necessary to rebuild the whole database. Only today, which is done automatically.
+      rebuild = false;
       var d = DateTime(
         dateTime.year, dateTime.month, dateTime.day
       );
@@ -109,10 +116,10 @@ class CommonFunctions {
     if (curDif >= 0 && curDif < initDif) {
       
       // Making sure flag does not already exists
-      await flagsDatabase.getDb(name).then((db) async {
-        await flagsDatabase.getFlagQuery(db, date).then((q) async {
+      await _flagsDatabase.getDb(name).then((db) async {
+        await _flagsDatabase.getFlagQuery(db, date).then((q) async {
           if (q.length == 0){
-            await flagsDatabase.addToDb(db, date);
+            await _flagsDatabase.addToDb(db, date);
           }
 
           else {
@@ -140,7 +147,7 @@ class CommonFunctions {
         textColor: Colors.white,
       );
     }
-    return;
+    return rebuild;
   }
   
   
@@ -180,7 +187,7 @@ class CommonFunctions {
     
     // Saving update to device
     var todayEpoch = today.millisecondsSinceEpoch;
-    await counterDatabase.updateCounter(db, name, counter, todayEpoch);
+    await _counterDatabase.updateCounter(db, name, counter, todayEpoch);
     
     print("last = ${DateTime.fromMillisecondsSinceEpoch(todayEpoch).hour}");
   }
@@ -188,8 +195,10 @@ class CommonFunctions {
   
   /// Delete this counter[name] from the database
   Future<void> deleteCounter(Database db, String name) async{
-    counterDatabase.deleteCounter(db, name).then((v) async {
-      await flagsDatabase.deleteDb(name);
+    _counterDatabase.deleteCounter(db, name).then((v) async {
+      await _flagsDatabase.deleteDb(name);
+      await _gapAverageDatabase.deleteDb(name);
+      await _schedulesDatabase.deleteDb(name);
       Fluttertoast.showToast(
         msg: "$name deleted!",
         toastLength: Toast.LENGTH_SHORT,
@@ -203,7 +212,7 @@ class CommonFunctions {
   
   /// Delete the given[name] flag database
   Future<void> deleteFlagsDatabase(String name) async{
-    await flagsDatabase.deleteDb(name);
+    await _flagsDatabase.deleteDb(name);
   }
   
   

@@ -29,8 +29,8 @@ class GapAverageDatabase {
   Future <int> addToDb(Database db, int date, double average) async{
     await db.rawInsert(
           'INSERT INTO '
-              'GA (${GapAverage.dbDate}, ${GapAverage.dbAverage})'
-              'VALUES ("$date", "$average")');
+              'GA(${GapAverage.dbDate}, ${GapAverage.dbAverage})'
+              'VALUES ($date, $average)');
     return 0;
   }
 
@@ -48,6 +48,19 @@ class GapAverageDatabase {
   /// Get query of all the rows in database
   Future getQuery(Database db) async {
     var query = await db.rawQuery('SELECT * FROM GA ORDER BY ${GapAverage.dbDate} ASC');
+    return query;
+  }
+  
+  /// Return a query with that begins at [start] and finishes at [end], and returns in descending if [desc] is true;
+  Future getQueryRange(Database db, int start, int end, bool desc) async {
+    var query;
+    if (!desc) {
+      query = await db.rawQuery('SELECT * FROM GA WHERE ${GapAverage.dbDate} >= $start AND ${GapAverage.dbDate} <= $end');
+    }
+    else {
+      query = await db.rawQuery('SELECT * FROM GA WHERE ${GapAverage.dbDate} >= $start AND ${GapAverage.dbDate} <= $end '
+      'ORDER BY ${GapAverage.dbDate} DESC');
+    }
     return query;
   }
 

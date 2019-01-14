@@ -12,7 +12,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sqflite/sqflite.dart';
 import 'utils/counter_database.dart';
 import 'utils/flags_database.dart';
-
+import 'utils/gap_average_database.dart';
+import 'utils/schedules_database.dart';
 
 class EditScreen extends StatefulWidget {
   final String name;
@@ -49,9 +50,11 @@ class EditState extends State<EditScreen> {
 
   var queryResult;
   Database db;
-  CounterDatabase counterDatabase = new CounterDatabase();
-  FlagsDatabase flagsDatabase = new FlagsDatabase();
-
+  CounterDatabase _counterDatabase = new CounterDatabase();
+  FlagsDatabase _flagsDatabase = new FlagsDatabase();
+  GapAverageDatabase _gapAverageDatabase = new GapAverageDatabase();
+  SchedulesDatabase _schedulesDatabase = SchedulesDatabase();
+  
   int initialDate;
   String modifiedRedable;
   
@@ -90,29 +93,31 @@ class EditState extends State<EditScreen> {
   /// Initizialize Database
   void _initDb() async {
     
-    counterDatabase.getDb().then((res) async{
+    _counterDatabase.getDb().then((res) async{
       db = res;
-      var result = await counterDatabase.getQuery(db);
+      var result = await _counterDatabase.getQuery(db);
       this.setState(() => queryResult = result);
     });
   }
   
   /// Save the changes to database and close screen
   void _updateCounter(String name) async{
-    await counterDatabase.getCounterQuery(db, name).then((result) async {
+    await _counterDatabase.getCounterQuery(db, name).then((result) async {
       if (result.length == 0 || pName == name) {
         var initial = DateTime.fromMillisecondsSinceEpoch(initialDate);
         int difference = DateTime.now().difference(initial).inDays;
 
         if (name == pName) {
-          await counterDatabase.updateCounterAndInitial(db, name, difference, initialDate, pLast);
-          await counterDatabase.updateCounterSettings(db, name, f, s);
+          await _counterDatabase.updateCounterAndInitial(db, name, difference, initialDate, pLast);
+          await _counterDatabase.updateCounterSettings(db, name, f, s);
         }
 
         else {
-          counterDatabase.deleteCounter(db, pName);
-          counterDatabase.addToDb(db, name, difference, initialDate, pLast, f, s);
-          flagsDatabase.renameDatabase(pName, name);
+          _counterDatabase.deleteCounter(db, pName);
+          _counterDatabase.addToDb(db, name, difference, initialDate, pLast, f, s);
+          _flagsDatabase.renameDatabase(pName, name);
+          _gapAverageDatabase.renameDatabase(pName, name);
+          _schedulesDatabase.renameDatabase(pName, name);
         }
 
         Navigator.pop(context);
@@ -294,6 +299,8 @@ class EditState extends State<EditScreen> {
                             initialDate = today.millisecondsSinceEpoch;
                             _updateCounter(pName);
                             common.deleteFlagsDatabase(pName);
+                            _schedulesDatabase.deleteDb(pName);
+                            _gapAverageDatabase.deleteDb(pName);
                           }
                         });
                       },

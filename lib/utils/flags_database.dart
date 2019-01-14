@@ -9,8 +9,10 @@ import 'flags_model.dart';
 
 
 class FlagsDatabase {
+  
+  //ADD ANOTHER FIELD TO THIS COUNTER
 
-  /// Initizalize this database and return it
+  /// Initialize this database and return it
   Future<Database> getDb(String id) async {
     assert (id != null && id != "");
     // Get a location using path_provider
@@ -53,6 +55,19 @@ class FlagsDatabase {
   /// Get query of all the rows in database
   Future getQueryDesc(Database db) async {
     var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} DESC');
+    return query;
+  }
+  
+  /// Return a query with that begins at [start] and finishes at [end], and returns in descending if [desc] is true;
+  Future getQueryRange(Database db, int start, int end, bool desc) async {
+    var query;
+    if (!desc) {
+      query = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} >= $start AND ${Flags.dbDate} <= $end');
+    }
+    else {
+      query = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} >= $start AND ${Flags.dbDate} <= $end '
+      'ORDER BY ${Flags.dbDate} DESC');
+    }
     return query;
   }
 

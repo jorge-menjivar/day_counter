@@ -10,7 +10,7 @@ import 'counter_model.dart';
 
 class CounterDatabase {
 
-  /// Initizalize this database and return it
+  /// Initialize this database and return it
   Future<Database> getDb() async {
     // Get a location using path_provider
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
@@ -30,7 +30,7 @@ class CounterDatabase {
       });
   }
 
-  /// Add new row to databse
+  /// Add new row to database
   Future <int> addToDb(Database db, String name, int value, int initial, int last, bool f, bool s) async{
     int fInt, sInt;
     f ? fInt = 1 : fInt = 0;

@@ -26,6 +26,7 @@ import 'package:sqflite/sqflite.dart';
 import 'utils/counter_database.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'utils/flags_database.dart';
+import 'utils/schedules_database.dart';
 
 void main(){
   runApp(new MyApp());
@@ -64,9 +65,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   Database db;
   CounterDatabase counterDatabase = new CounterDatabase();
   FlagsDatabase flagsDatabase = new FlagsDatabase();
+  
   var _dataLists = List<List<ProgressByDate>>();
   var _schedules = List<List<Tuple2>>();
-
+  var _dates = List<int>();
+  
   // If app is pin protected
   bool secured = false;
   String pin;
@@ -79,6 +82,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   
   bool _countersLoaded = false;
+  
   
 
   // TODO change settings in android manifest to allow backups
@@ -129,16 +133,43 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     }
   }
   
+  
+  /// Builds the date numbers used in the schedule of the cards
+  void _buildDates() {
+    _dates.clear();
+    
+    var now = DateTime.now();
+    var today = DateTime(now.year, now.month, now.day);
+    
+    // +2 is the last 2 days in the past
+    for (int i = -2; i < _algorithms.daysInSchedule; i++) {
+      DateTime day = today.add(Duration(days: i));
+      int date = day.day;
+      _dates.add(date);
+    }
+  }
+  
   /// Gets the schedules for all the applicable cards and then updates the screen.
-  Future<void> _getSchedules() async{
+  Future<void> _getSchedules(bool rebuild) async{
+    _buildDates();
+    _schedules.clear();
     for (int i =  0; i < queryResult.length; i++) {
       var row = queryResult[i];
       var name = row['name'];
-      var initial = row['name'];
+      var initial = row['initial'];
       var last = row['last'];
-      List<Tuple2> schedule = await _algorithms.getSchedule(name, initial, last);
+      List<Tuple2> schedule = await _algorithms.getSchedule(name, initial, last, rebuild);
       // If the algorithm run successfully, add to the schedules list
-      if (schedule != null) _schedules.add(schedule);
+      if (schedule != null) {
+        _schedules.add(schedule);
+      }
+      else {
+        var schedule = List<Tuple2>();
+        for (int i = 0; i < _algorithms.daysInSchedule + 2; i++) {
+          schedule.add(Tuple2(false, 0));
+        }
+        _schedules.add(schedule);
+      }
     }
     setState(() {});
   }
@@ -150,6 +181,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       queryResult = await counterDatabase.getQuery(db);
       tileCount = queryResult.length;
       await _getData();
+      await _getSchedules(false);
       _countersLoaded = true;
       setState(() => queryResult);
     });
@@ -217,6 +249,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
         common.incrementCounter(db, row['name'], row['value'], row['last']);
       }
       await _updateCounters();
+      await _getSchedules(false);
       await _getData();
       setState(() {});
     }
@@ -366,6 +399,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   Future<void> _showFlags(String name) async{
     await Navigator.push(context, MaterialPageRoute(builder: (context) => FlagsScreen(name: name,)));
     _getData();
+    _getSchedules(true);
   }
   
   @override
@@ -573,10 +607,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     var schedule = List<Tuple2>();
     
     if (_schedules.length > i){
-      schedule = _schedules[0];
+      schedule = _schedules[i];
     }
     else {
-      for (int i = 0; i < _algorithms.daysInSchedule; i++) {
+      for (int i = 0; i < _algorithms.daysInSchedule + 2; i++) {
         schedule.add(Tuple2(false, 0));
       }
     }
@@ -690,148 +724,338 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           
           
           // -------------------------------- Schedule -----------------------------------------
-          //TODO
           (s || true)
           ? Container(
-            padding: EdgeInsets.symmetric(horizontal: 8),
+            padding: EdgeInsets.fromLTRB(4, 6, 4, 2),
             color: Colors.blue.withAlpha(40),
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 return new SizedBox(
-                  height: 60.0,
+                  height: 50.0,
                   width: constraints.maxWidth,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       SizedBox(
-                        height: constraints.maxWidth/8,
-                        width: constraints.maxWidth/8,
-                        child: RaisedButton(
-                          child: Text(
-                            (schedule[0].item1) ? schedule[0].item2 : "",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[0].item1) ? schedule[0].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                color: (schedule[0].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[0].toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black.withOpacity(.75)
+                              )
                             )
-                          ),
-                          color: (schedule[0].item1)
-                          ? Colors.red : Colors.green,
-                          onPressed: () {},
-                        )
-                      ),
-                      SizedBox(width: constraints.maxWidth/8/6,),
-                      
-                      SizedBox(
-                        height: constraints.maxWidth/8,
-                        width: constraints.maxWidth/8,
-                        child: RaisedButton(
-                          child: Text(
-                            (schedule[1].item1) ? schedule[1].item2 : "",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white
-                            )
-                          ),
-                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-                          color: (schedule[1].item1)
-                          ? Colors.red : Colors.green,
-                          onPressed: () {},
+                          ],
                         ),
                       ),
-                      SizedBox(width: constraints.maxWidth/8/6,),
+                      SizedBox(width: constraints.maxWidth/11/9,),
                       
                       SizedBox(
-                        height: constraints.maxWidth/8,
-                        width: constraints.maxWidth/8,
-                        child: RaisedButton(
-                          child: Text(
-                            (schedule[2].item1) ? schedule[2].item2 : "",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[1].item1) ? schedule[1].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                color: (schedule[1].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[1].toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black.withOpacity(.75)
+                              )
                             )
-                          ),
-                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-                          color: (schedule[2].item1)
-                          ? Colors.red : Colors.green,
-                          onPressed: () {},
+                          ],
                         ),
                       ),
-                      SizedBox(width: constraints.maxWidth/8/6,),
+                      SizedBox(width: constraints.maxWidth/11/9,),
                       
                       SizedBox(
-                        height: constraints.maxWidth/8,
-                        width: constraints.maxWidth/8,
-                        child: RaisedButton(
-                          child: Text(
-                            (schedule[3].item1) ? schedule[3].item2 : "",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[2].item1) ? schedule[2].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                color: (schedule[2].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[2].toString(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black.withOpacity(.75)
+                              )
                             )
-                          ),
-                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-                          color: (schedule[3].item1)
-                          ? Colors.red : Colors.green,
-                          onPressed: () {},
+                          ],
                         ),
                       ),
-                      SizedBox(width: constraints.maxWidth/8/6,),
+                      SizedBox(width: constraints.maxWidth/11/9,),
                       
                       SizedBox(
-                        height: constraints.maxWidth/8,
-                        width: constraints.maxWidth/8,
-                        child: RaisedButton(
-                          child: Text(
-                            (schedule[4].item1) ? schedule[4].item2 : "",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[3].item1) ? schedule[3].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                color: (schedule[3].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[3].toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black.withOpacity(.75)
+                              )
                             )
-                          ),
-                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-                          color: (schedule[4].item1)
-                          ? Colors.red : Colors.green,
-                          onPressed: () {},
+                          ],
                         ),
                       ),
-                      SizedBox(width: constraints.maxWidth/8/6,),
+                      SizedBox(width: constraints.maxWidth/11/9,),
                       
                       SizedBox(
-                        height: constraints.maxWidth/8,
-                        width: constraints.maxWidth/8,
-                        child: RaisedButton(
-                          child: Text(
-                            (schedule[5].item1) ? schedule[5].item2 : "",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[4].item1) ? schedule[4].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                color: (schedule[4].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[4].toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black.withOpacity(.75)
+                              )
                             )
-                          ),
-                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-                          color: (schedule[5].item1)
-                          ? Colors.red : Colors.green,
-                          onPressed: () {},
+                          ],
                         ),
                       ),
-                      SizedBox(width: constraints.maxWidth/8/6,),
+                      SizedBox(width: constraints.maxWidth/11/9,),
                       
                       SizedBox(
-                        height: constraints.maxWidth/8,
-                        width: constraints.maxWidth/8,
-                        child: RaisedButton(
-                          child: Text(
-                            (schedule[6].item1) ? schedule[6].item2 : "",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[5].item1) ? schedule[5].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                color: (schedule[5].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[5].toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black.withOpacity(.75)
+                              )
                             )
-                          ),
-                          shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-                          color: (schedule[6].item1)
-                          ? Colors.red : Colors.green,
-                          onPressed: () {},
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: constraints.maxWidth/11/9,),
+                      
+                      SizedBox(
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[6].item1) ? schedule[6].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                color: (schedule[6].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[6].toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black.withOpacity(.75)
+                              )
+                            )
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: constraints.maxWidth/11/9,),
+                      
+                      SizedBox(
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[7].item1) ? schedule[7].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                color: (schedule[7].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[7].toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black.withOpacity(.75)
+                              )
+                            )
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: constraints.maxWidth/11/9,),
+                      
+                      SizedBox(
+                        width: constraints.maxWidth/11,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            SizedBox(
+                              height: constraints.maxWidth/11,
+                              width: constraints.maxWidth/11,
+                              child: RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Text(
+                                  (schedule[8].item1) ? schedule[8].item2.toString() : "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                color: (schedule[8].item1)
+                                ? Colors.red : Colors.green,
+                                onPressed: () {},
+                              )
+                            ),
+                            Text(
+                              _dates[8].toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black.withOpacity(.75)
+                              ) 
+                            )
+                          ],
                         ),
                       ),
                     ],
@@ -896,7 +1120,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                     ),
                     iconSize: 30,
                     onPressed: () {
-                      (value != "0") 
+                      (value != 0) 
                       ? showDatePicker(
                         initialDate: new DateTime.now(),
                         firstDate: new DateTime.fromMillisecondsSinceEpoch(initial).add(new Duration(days: 1)),
@@ -904,7 +1128,8 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                         context: context,
                       ).then((v) async {
                         if (v != null) {
-                           await common.addRedFlagToDb(v, name, initial);
+                           bool rebuild = await common.addRedFlagToDb(v, name, initial);
+                           await _getSchedules(rebuild);
                           _getData();
                         }
                       }) 
