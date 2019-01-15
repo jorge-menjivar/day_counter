@@ -155,14 +155,16 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     _schedules.clear();
     for (int i =  0; i < queryResult.length; i++) {
       var row = queryResult[i];
+      bool s = (row['sSwitch'] == 1) ? true : false;
       var name = row['name'];
       var initial = row['initial'];
       var last = row['last'];
       List<Tuple2> schedule = await _algorithms.getSchedule(name, initial, last, rebuild);
       // If the algorithm run successfully, add to the schedules list
-      if (schedule != null) {
+      if (schedule != null && s) {
         _schedules.add(schedule);
       }
+      // Otherwise add a predefined schedule.
       else {
         var schedule = List<Tuple2>();
         for (int i = 0; i < _algorithms.daysInSchedule + 2; i++) {
@@ -195,6 +197,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       String name = row['name'];
       int initial = row['initial'];
       await flagsDatabase.getDb(name).then((res) async {
+        await flagsDatabase.deleteBefore(res, initial);
         await flagsDatabase.getQuery(res).then((queryR) async {
           // Algorithm
           var data = _algorithms.getDataList(queryR, initial);
@@ -724,7 +727,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
           
           
           // -------------------------------- Schedule -----------------------------------------
-          (s || true)
+          (s)
           ? Container(
             padding: EdgeInsets.fromLTRB(4, 6, 4, 2),
             color: Colors.blue.withAlpha(40),

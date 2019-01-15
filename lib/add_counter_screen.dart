@@ -90,12 +90,12 @@ class AddCounterState extends State<AddCounterScreen> {
         if (modifiedDate != null && DateTime.fromMillisecondsSinceEpoch(modifiedDate) != today){
           var lastFormatted = DateTime.fromMillisecondsSinceEpoch(modifiedDate);
           var v = DateTime.now().difference(lastFormatted).inDays;
-          await counterDatabase.addToDb(db, name, v, modifiedDate, last, f, false);
+          await counterDatabase.addToDb(db, name, v, modifiedDate, last, f, s);
           print("initial = ${DateTime.fromMillisecondsSinceEpoch(modifiedDate).hour}");
           print("last = ${DateTime.fromMillisecondsSinceEpoch(last).hour}");
         }
         else {
-          await counterDatabase.addToDb(db, name, 0, initial, last, f, false);
+          await counterDatabase.addToDb(db, name, 0, initial, last, f, s);
           print("initial = ${DateTime.fromMillisecondsSinceEpoch(initial).hour}");
           print("last = ${DateTime.fromMillisecondsSinceEpoch(last).hour}");
         }
@@ -241,6 +241,37 @@ class AddCounterState extends State<AddCounterScreen> {
                     value: f,
                     onChanged: (v) {
                       f = v;
+                      setState(() {});
+                    }
+                  ),
+                ),
+                new SizedBox(
+                  height: 48.0,
+                ),
+                new ListTile(
+                  leading: Icon(
+                    Icons.calendar_view_day,
+                    color: Colors.red
+                  ),
+                  title: Text (
+                    "Allow Cheat Days Calendar"
+                  ),
+                  subtitle: Text(
+                    "Use with caution. Still under development, can break app."
+                  ),
+                  trailing:
+                  (Platform.isAndroid)
+                  ? Switch(
+                    value: s,
+                    onChanged: (v) {
+                      s = v;
+                      setState(() {});
+                    }
+                  )
+                  : CupertinoSwitch(
+                    value: s,
+                    onChanged: (v) {
+                      s = v;
                       setState(() {});
                     }
                   ),

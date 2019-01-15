@@ -56,7 +56,7 @@ class EditState extends State<EditScreen> {
   SchedulesDatabase _schedulesDatabase = SchedulesDatabase();
   
   int initialDate;
-  String modifiedRedable;
+  String _modifiedReadable;
   
   CommonFunctions common = CommonFunctions();
   
@@ -81,7 +81,7 @@ class EditState extends State<EditScreen> {
       case 11: month = "November"; break;
       case 12: month = "December"; break;
     }
-    modifiedRedable = "$month ${initial.day}, ${initial.year}";
+    _modifiedReadable = "$month ${initial.day}, ${initial.year}";
     _controllerName.text = pName;
   }
 
@@ -90,9 +90,8 @@ class EditState extends State<EditScreen> {
     super.dispose();
   }
 
-  /// Initizialize Database
+  /// Initialize Database
   void _initDb() async {
-    
     _counterDatabase.getDb().then((res) async{
       db = res;
       var result = await _counterDatabase.getQuery(db);
@@ -110,6 +109,9 @@ class EditState extends State<EditScreen> {
         if (name == pName) {
           await _counterDatabase.updateCounterAndInitial(db, name, difference, initialDate, pLast);
           await _counterDatabase.updateCounterSettings(db, name, f, s);
+          await _flagsDatabase.getDb(name).then((v) {
+            _flagsDatabase.deleteBefore(v, initialDate);
+          });
         }
 
         else {
@@ -119,9 +121,8 @@ class EditState extends State<EditScreen> {
           _gapAverageDatabase.renameDatabase(pName, name);
           _schedulesDatabase.renameDatabase(pName, name);
         }
-
+        
         Navigator.pop(context);
-
       }
       else {
         Fluttertoast.showToast(
@@ -155,7 +156,7 @@ class EditState extends State<EditScreen> {
       case 12: month = "December"; break;
     }
 
-    setState(() {modifiedRedable = "$month ${v.day}, ${v.year}";});
+    setState(() {_modifiedReadable = "$month ${v.day}, ${v.year}";});
     return;
   }
   
@@ -220,7 +221,7 @@ class EditState extends State<EditScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       new Text(
-                        modifiedRedable,
+                        _modifiedReadable,
                         style: TextStyle(
                           // If switch is on display enabled
                           color: (initialDate != pInitial) ? Colors.black87 : Colors.black45,
@@ -263,6 +264,37 @@ class EditState extends State<EditScreen> {
                     value: f,
                     onChanged: (v) {
                       f = v;
+                      setState(() {});
+                    }
+                  ),
+                ),
+                new SizedBox(
+                  height: 48.0,
+                ),
+                new ListTile(
+                  leading: Icon(
+                    Icons.calendar_view_day,
+                    color: Colors.red
+                  ),
+                  title: Text (
+                    "Allow Cheat Days Calendar"
+                  ),
+                  subtitle: Text(
+                    "Use with caution. Still under development, can break app."
+                  ),
+                  trailing:
+                  (Platform.isAndroid)
+                  ? Switch(
+                    value: s,
+                    onChanged: (v) {
+                      s = v;
+                      setState(() {});
+                    }
+                  )
+                  : CupertinoSwitch(
+                    value: s,
+                    onChanged: (v) {
+                      s = v;
                       setState(() {});
                     }
                   ),

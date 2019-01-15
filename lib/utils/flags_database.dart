@@ -45,7 +45,17 @@ class FlagsDatabase {
   Future<int> deleteFlag(Database db, int date) async{
     return db.rawDelete('DELETE FROM Flags WHERE ${Flags.dbDate} = "$date"');
   }
-
+  
+  /// Deletes the given [date] and anything before it
+  Future deleteBefore(Database db, int date) async {
+    return db.rawQuery('DELETE FROM Flags WHERE ${Flags.dbDate} <= $date');
+  }
+  
+  /// Deletes the given [date] and anything after it
+  Future deleteAfter(Database db, int date) async {
+    return db.rawQuery('DELETE FROM Flags WHERE ${Flags.dbDate} => $date');
+  }
+  
   /// Get query of all the rows in database
   Future getQuery(Database db) async {
     var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} ASC');
@@ -70,7 +80,9 @@ class FlagsDatabase {
     }
     return query;
   }
-
+  
+  
+  
   /// Deletes database of the given name
   Future<String> deleteDb(String id) async {
     assert (id != null && id != "");
