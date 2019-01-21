@@ -78,7 +78,7 @@ class SchedulesDatabase {
     assert (id != null && id != "");
     // Get a location using path_provider
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, '${id}Schedules');
+    String path = join(documentsDirectory.path, '${id}Schedule');
 
     // make sure the folder exists
     if (await Directory(dirname(path)).exists()) {
@@ -101,10 +101,10 @@ class SchedulesDatabase {
 
     // Get a location using path_provider
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, '${id}Schedules');
+    String path = join(documentsDirectory.path, '${id}Schedule');
 
     // New directory for the file (new name)
-    String newPath = join(documentsDirectory.path, '${newId}Schedules');
+    String newPath = join(documentsDirectory.path, '${newId}Schedule');
 
     // renaming
     var file = File(path);

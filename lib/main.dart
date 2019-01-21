@@ -26,7 +26,6 @@ import 'package:sqflite/sqflite.dart';
 import 'utils/counter_database.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'utils/flags_database.dart';
-import 'utils/schedules_database.dart';
 
 void main(){
   runApp(new MyApp());
@@ -63,12 +62,13 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   
   var queryResult;
   Database db;
-  CounterDatabase counterDatabase = new CounterDatabase();
-  FlagsDatabase flagsDatabase = new FlagsDatabase();
+  CounterDatabase _counterDatabase = new CounterDatabase();
+  FlagsDatabase _flagsDatabase = new FlagsDatabase();
   
   var _dataLists = List<List<ProgressByDate>>();
   var _schedules = List<List<Tuple2>>();
-  var _dates = List<int>();
+  var _cheatFlags = List<Tuple3<bool, bool, bool>>();
+  var _dates = List<Tuple2<int, DateTime>>();
   
   // If app is pin protected
   bool secured = false;
@@ -143,10 +143,35 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     
     // +2 is the last 2 days in the past
     for (int i = -2; i < _algorithms.daysInSchedule; i++) {
-      DateTime day = today.add(Duration(days: i));
-      int date = day.day;
-      _dates.add(date);
+      DateTime date = today.add(Duration(days: i));
+      int day = date.day;
+      _dates.add(Tuple2(day, date));
     }
+  }
+  
+  /// Decides if to put flag icons on the schedule
+  Future<void> _getCheatFlags(int i, String name) async {
+    bool b1, b2, b3;
+    var db = await _flagsDatabase.getDb(name);
+    
+    var now = DateTime.now();
+    var today = DateTime(now.year, now.month, now.day);
+    var yesterday = today.subtract(Duration(days: 1));
+    var dayBeforeYesterday = today.subtract(Duration(days: 2));
+    
+    await _flagsDatabase.getCheatFlagQuery(db, today.millisecondsSinceEpoch).then((v) {
+      (v.length == 0) ? b1 = false : b1 = true;
+    });
+    
+    await _flagsDatabase.getCheatFlagQuery(db, yesterday.millisecondsSinceEpoch).then((v) {
+      (v.length == 0) ? b2 = false : b2 = true;
+    });
+    
+    await _flagsDatabase.getCheatFlagQuery(db, dayBeforeYesterday.millisecondsSinceEpoch).then((v) {
+      (v.length == 0) ? b3 = false : b3 = true;
+    });
+    
+    _cheatFlags.add(Tuple3(b3, b2, b1));
   }
   
   /// Gets the schedules for all the applicable cards and then updates the screen.
@@ -178,9 +203,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   
   /// Initialize database
   void _initDb() async {
-    await counterDatabase.getDb().then((res) async{
+    await _counterDatabase.getDb().then((res) async{
       db = res;
-      queryResult = await counterDatabase.getQuery(db);
+      queryResult = await _counterDatabase.getQuery(db);
       tileCount = queryResult.length;
       await _getData();
       await _getSchedules(false);
@@ -191,14 +216,16 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   
   /// Gets the data to display on the chart for all counters.
   Future<void> _getData() async {
+    _cheatFlags.clear();
     int size = queryResult.length;
     for (int i = 0; i < size; i++) {
       var row = queryResult[i];
       String name = row['name'];
       int initial = row['initial'];
-      await flagsDatabase.getDb(name).then((res) async {
-        await flagsDatabase.deleteBefore(res, initial);
-        await flagsDatabase.getQuery(res).then((queryR) async {
+      await _getCheatFlags(i, name);
+      await _flagsDatabase.getDb(name).then((res) async {
+        await _flagsDatabase.deleteBefore(res, initial);
+        await _flagsDatabase.getQuery(res).then((queryR) async {
           // Algorithm
           var data = _algorithms.getDataList(queryR, initial);
           
@@ -238,9 +265,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
   
   /// Updates the Counters so that they display current values
   Future<void> _updateCounters() async {
-    queryResult = await counterDatabase.getQuery(db);
+    queryResult = await _counterDatabase.getQuery(db);
     tileCount = queryResult.length;
     await _getData();
+    await _getSchedules(false);
     setState(() => queryResult);
   }
   
@@ -253,7 +281,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       }
       await _updateCounters();
       await _getSchedules(false);
-      await _getData();
       setState(() {});
     }
     return 0;
@@ -606,7 +633,6 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
     );
     
     // In case schedules have not been loaded yet
-    
     var schedule = List<Tuple2>();
     
     if (_schedules.length > i){
@@ -616,6 +642,16 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
       for (int i = 0; i < _algorithms.daysInSchedule + 2; i++) {
         schedule.add(Tuple2(false, 0));
       }
+    }
+    
+    // In case cheat flags have not been loaded yet
+    var cheatFlag;
+    
+    if (_cheatFlags.length > i){
+      cheatFlag = _cheatFlags[i];
+    }
+    else {
+      cheatFlag = Tuple3(true, true, true);
     }
     
     
@@ -748,7 +784,19 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                             SizedBox(
                               height: constraints.maxWidth/11,
                               width: constraints.maxWidth/11,
-                              child: RaisedButton(
+                              child: cheatFlag.item1
+                              ? RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Icon(
+                                  Icons.flag,
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                onPressed: () async {
+                                  await common.addCheatFlagToDb(_dates[0].item2, name, initial);
+                                  _updateCounters();
+                                },
+                              )
+                              : RaisedButton(
                                 padding: EdgeInsets.all(0),
                                 child: Text(
                                   (schedule[0].item1) ? schedule[0].item2.toString() : "",
@@ -760,11 +808,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
                                 color: (schedule[0].item1)
                                 ? Colors.red : Colors.green,
-                                onPressed: () {},
+                                onPressed: () async {
+                                  await common.addCheatFlagToDb(_dates[0].item2, name, initial);
+                                  _updateCounters();
+                                },
                               )
                             ),
                             Text(
-                              _dates[0].toString(),
+                              _dates[0].item1.toString(),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -784,7 +835,19 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                             SizedBox(
                               height: constraints.maxWidth/11,
                               width: constraints.maxWidth/11,
-                              child: RaisedButton(
+                              child: cheatFlag.item2
+                              ? RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Icon(
+                                  Icons.flag,
+                                ),
+                                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+                                onPressed: () async {
+                                  await common.addCheatFlagToDb(_dates[1].item2, name, initial);
+                                  _updateCounters();
+                                },
+                              )
+                              : RaisedButton(
                                 padding: EdgeInsets.all(0),
                                 child: Text(
                                   (schedule[1].item1) ? schedule[1].item2.toString() : "",
@@ -796,11 +859,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
                                 color: (schedule[1].item1)
                                 ? Colors.red : Colors.green,
-                                onPressed: () {},
+                                onPressed: () async {
+                                  await common.addCheatFlagToDb(_dates[1].item2, name, initial);
+                                  _updateCounters();
+                                },
                               )
                             ),
                             Text(
-                              _dates[1].toString(),
+                              _dates[1].item1.toString(),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -820,7 +886,18 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                             SizedBox(
                               height: constraints.maxWidth/11,
                               width: constraints.maxWidth/11,
-                              child: RaisedButton(
+                              child: cheatFlag.item3
+                              ? RaisedButton(
+                                padding: EdgeInsets.all(0),
+                                child: Icon (
+                                  Icons.flag,
+                                ),
+                                onPressed: () async {
+                                    await common.addCheatFlagToDb(_dates[2].item2, name, initial);
+                                    _updateCounters();
+                                  },
+                              )
+                              : RaisedButton(
                                 padding: EdgeInsets.all(0),
                                 child: Text(
                                   (schedule[2].item1) ? schedule[2].item2.toString() : "",
@@ -831,11 +908,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                                 ),
                                 color: (schedule[2].item1)
                                 ? Colors.red : Colors.green,
-                                onPressed: () {},
+                                onPressed: () async {
+                                    await common.addCheatFlagToDb(_dates[2].item2, name, initial);
+                                    _updateCounters();
+                                  },
                               )
                             ),
                             Text(
-                              _dates[2].toString(),
+                              _dates[2].item1.toString(),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -871,7 +951,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                               )
                             ),
                             Text(
-                              _dates[3].toString(),
+                              _dates[3].item1.toString(),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -907,7 +987,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                               )
                             ),
                             Text(
-                              _dates[4].toString(),
+                              _dates[4].item1.toString(),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -943,7 +1023,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                               )
                             ),
                             Text(
-                              _dates[5].toString(),
+                              _dates[5].item1.toString(),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -979,7 +1059,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                               )
                             ),
                             Text(
-                              _dates[6].toString(),
+                              _dates[6].item1.toString(),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -1015,7 +1095,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                               )
                             ),
                             Text(
-                              _dates[7].toString(),
+                              _dates[7].item1.toString(),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -1051,7 +1131,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
                               )
                             ),
                             Text(
-                              _dates[8].toString(),
+                              _dates[8].item1.toString(),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,

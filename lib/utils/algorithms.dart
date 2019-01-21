@@ -436,12 +436,12 @@ class Algorithms {
     // If ground is negative put ranges as close as possible
     if (ground < 0) {
       while (flags > 0) {
-        int range = flags;
         int amount = (flags / 2).round();
+        int range = amount;
         flags -= amount;
         
         // The days with flags
-        newSchedule.add(Tuple2<int, int>(range, amount));
+        newSchedule.add(Tuple2<int, int>(range, 1));
         
         // Days without flags
         newSchedule.add(Tuple2<int, int>(1, 0));
@@ -453,21 +453,24 @@ class Algorithms {
       switch (flags) {
         case 1: {
           newSchedule.add(Tuple2<int, int>(3, 0));
-          newSchedule.add(Tuple2<int, int>(2, 1));
+          newSchedule.add(Tuple2<int, int>(1, 1));
           break;
         }
         
         case 2: {
           newSchedule.add(Tuple2<int, int>(1, 0));
-          newSchedule.add(Tuple2<int, int>(2, 1));
+          newSchedule.add(Tuple2<int, int>(1, 1));
           newSchedule.add(Tuple2<int, int>(2, 0));
-          newSchedule.add(Tuple2<int, int>(2, 1));
+          newSchedule.add(Tuple2<int, int>(1, 1));
+          newSchedule.add(Tuple2<int, int>(2, 0));
           break;
         }
         
         case 3: {
+          newSchedule.add(Tuple2<int, int>(2, 0));
+          newSchedule.add(Tuple2<int, int>(1, 1));
           newSchedule.add(Tuple2<int, int>(1, 0));
-          newSchedule.add(Tuple2<int, int>(4, 2));
+          newSchedule.add(Tuple2<int, int>(1, 1));
           newSchedule.add(Tuple2<int, int>(1, 0));
           newSchedule.add(Tuple2<int, int>(1, 1));
           break;

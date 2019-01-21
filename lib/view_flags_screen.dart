@@ -27,7 +27,7 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
   FlagsState({
     @required this.pName
   });
-
+  
   var queryResult;
   Database db;
   FlagsDatabase flagsDatabase = FlagsDatabase();
@@ -53,12 +53,12 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
   void _initDb() async {
     flagsDatabase.getDb(pName).then((res) async{
       db = res;
-      queryResult = await flagsDatabase.getQuery(db);
+      queryResult = await flagsDatabase.getAll(db);
       tileCount = (queryResult.length * 2) + 1;
       this.setState(() => queryResult);
     });
   }
-
+  
   Future<void> _deleteFlag(int date) async{
     await flagsDatabase.deleteFlag(db, date).then((v) async {
       Fluttertoast.showToast(
@@ -69,8 +69,7 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
         backgroundColor: Colors.transparent,
         textColor: Colors.white,
       );
-
-      queryResult = await flagsDatabase.getQuery(db);
+      queryResult = await flagsDatabase.getAll(db);
       tileCount = (queryResult.length * 2) + 1;
       setState(() => queryResult);
     });
@@ -109,8 +108,13 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
           var row = queryResult[index];
 
           var date = row['date'];
+          bool cheat;
           
-          return _buildRow(date);
+          var cheatInt = row['cheat'];
+          
+          cheatInt == 0 ? cheat = false : cheat = true;
+          
+          return _buildRow(date, cheat);
         }
 
         // If no flags yet
@@ -130,7 +134,8 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
     );
   }
   
-  Widget _buildRow(int date) {
+  Widget _buildRow(int date, bool cheat) {
+    
     var dateEpoch = DateTime.fromMillisecondsSinceEpoch(date);
     String month;
     switch (dateEpoch.month) {
@@ -151,10 +156,16 @@ class FlagsState extends State<FlagsScreen> with WidgetsBindingObserver{
     
     return ListTile(
       contentPadding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      leading: IconButton(
+        icon: Icon(
+          Icons.flag,
+          color: cheat ? Colors.black : Colors.red,
+        ),
+        onPressed: () => _deleteFlag(date),
+      ),
       title: Text(
         readableDate,
         textAlign: TextAlign.left,
-        
       ),
       trailing: IconButton(
         icon: Icon(

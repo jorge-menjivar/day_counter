@@ -82,6 +82,49 @@ class CommonFunctions {
     }
   }
   
+  Future<void> addCheatFlagToDb (DateTime dateTime, String name, int initial) async {
+    // The initial date of the counter
+    DateTime initDate = DateTime.fromMillisecondsSinceEpoch(initial);
+    
+    int date = dateTime.millisecondsSinceEpoch;
+    
+    // Setting the millisecondsSinceEpoch to the beginning of the day of today.
+    var today = DateTime(
+      DateTime.now().year, DateTime.now().month, DateTime.now().day
+    );
+    
+    int initDif = today.difference(initDate).inDays;
+    
+    int curDif = today.difference(dateTime).inDays;
+    
+    // Making sure the flag date is after initial date and before today's date
+    if (curDif >= 0 && curDif < initDif) {
+      var cheatFlagsDb = await _flagsDatabase.getDb(name);
+      var cheatQuery = await _flagsDatabase.getCheatFlagQuery(cheatFlagsDb, date);
+      var nonCheatQuery = await _flagsDatabase.getFlagQuery(cheatFlagsDb, date);
+      
+      // If does not exist
+      if (cheatQuery.length == 0 && nonCheatQuery.length == 0) {
+        _flagsDatabase.addToDb(cheatFlagsDb, date, 1);
+      }
+      
+      else {
+        _flagsDatabase.deleteFlag(cheatFlagsDb, date);
+      }
+    }
+    // Print toast if flag is invalid
+    else {
+      Fluttertoast.showToast(
+        msg: "Flag cannot exist before the start of the counter",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIos: 2,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+  
   
   /// Adds flag with the given date to the database. Returns whether all Schedules should be rebuilt.
   Future<bool> addRedFlagToDb (DateTime dateTime, String name, int initial) async{
@@ -114,12 +157,11 @@ class CommonFunctions {
     
     // Making sure the flag date is after initial date and before today's date
     if (curDif >= 0 && curDif < initDif) {
-      
       // Making sure flag does not already exists
       await _flagsDatabase.getDb(name).then((db) async {
         await _flagsDatabase.getFlagQuery(db, date).then((q) async {
           if (q.length == 0){
-            await _flagsDatabase.addToDb(db, date);
+            await _flagsDatabase.addToDb(db, date, 0);
           }
 
           else {

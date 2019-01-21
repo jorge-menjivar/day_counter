@@ -22,22 +22,23 @@ class FlagsDatabase {
       onCreate: (Database db, int version) async {
         await db.execute(
             "CREATE TABLE Flags ("
-                "${Flags.dbDate} INTEGER PRIMARY KEY "
+                "${Flags.dbDate} INTEGER PRIMARY KEY, "
+                "${Flags.dbCheat} INTEGER "
                 ")");
       });
   }
 
-  /// Add new row to databse
-  Future <int> addToDb(Database db, int date) async{
+  /// Add new row to database
+  Future <int> addToDb(Database db, int date, int cheat) async{
     return await db.rawInsert(
           'INSERT INTO '
-              'Flags(${Flags.dbDate})'
-              ' VALUES("$date")');
+              'Flags(${Flags.dbDate}, ${Flags.dbCheat})'
+              ' VALUES($date, $cheat)');
   }
 
   /// Get map of the desired searched item
   Future<List<Map>> getFlagQuery(Database db, int date) async{
-    var result = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} = "$date"');
+    var result = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} = $date AND ${Flags.dbCheat} = 0');
     return result;
   }
 
@@ -58,13 +59,15 @@ class FlagsDatabase {
   
   /// Get query of all the rows in database
   Future getQuery(Database db) async {
-    var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} ASC');
+    var query = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbCheat} = 0 '
+      'ORDER BY ${Flags.dbDate} ASC');
     return query;
   }
   
   /// Get query of all the rows in database
   Future getQueryDesc(Database db) async {
-    var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} DESC');
+    var query = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbCheat} = 0 '
+      'ORDER BY ${Flags.dbDate} DESC');
     return query;
   }
   
@@ -72,16 +75,35 @@ class FlagsDatabase {
   Future getQueryRange(Database db, int start, int end, bool desc) async {
     var query;
     if (!desc) {
-      query = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} >= $start AND ${Flags.dbDate} <= $end');
+      query = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} >= $start AND ${Flags.dbDate} <= $end '
+      'AND ${Flags.dbCheat} = 0');
     }
     else {
       query = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} >= $start AND ${Flags.dbDate} <= $end '
+      'AND ${Flags.dbCheat} = 0 '
       'ORDER BY ${Flags.dbDate} DESC');
     }
     return query;
   }
   
+  /// Get query of all the rows in database
+  Future getAll(Database db) async {
+    var query = await db.rawQuery('SELECT * FROM Flags ORDER BY ${Flags.dbDate} ASC');
+    return query;
+  }
   
+  /// Get query of the cheat flags in the database
+  Future getCheatFlagsQuery(Database db) async {
+    var query = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbCheat} = 1 '
+      'ORDER BY ${Flags.dbDate} ASC');
+    return query;
+  }
+  
+  /// Get map of the desired searched item
+  Future<List<Map>> getCheatFlagQuery(Database db, int date) async{
+    var result = await db.rawQuery('SELECT * FROM Flags WHERE ${Flags.dbDate} = $date AND ${Flags.dbCheat} = 1');
+    return result;
+  }
   
   /// Deletes database of the given name
   Future<String> deleteDb(String id) async {
