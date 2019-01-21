@@ -192,7 +192,7 @@ class EditState extends State<EditScreen> {
                   controller: _controllerName,
                   keyboardType: TextInputType.text,
                   autocorrect: false,
-                  autofocus: true,
+                  autofocus: false,
                   autovalidate: true,
                   decoration: new InputDecoration(
                     labelText: "Counter Name",

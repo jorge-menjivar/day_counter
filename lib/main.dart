@@ -770,7 +770,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver{
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 return new SizedBox(
-                  height: 50.0,
+                  height: 53.0,
                   width: constraints.maxWidth,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
